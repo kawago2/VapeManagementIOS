@@ -1,0 +1,22 @@
+# XcodeGen (Generated project files)
+*.xcodeproj/
+*.xcworkspace/
+
+# Xcode / Apple / Swift
+.build/
+build/
+DerivedData/
+*.xcuserstate
+*.xcuserdatad/
+project.xcworkspace/
+xcuserdata/
+.DS_Store
+**/.DS_Store
+
+# Secrets & Environment Variables (Mencegah kebocoran credential DB)
+**/Secrets.plist
+**/Secrets.json
+.env
+.env.*
+
+
