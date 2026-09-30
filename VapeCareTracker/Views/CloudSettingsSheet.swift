@@ -4,6 +4,7 @@ struct CloudSettingsSheet: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var syncService = TursoSyncService.shared
     
+    @State private var urlInput: String = TursoConfig.databaseURL
     @State private var tokenInput: String = TursoConfig.authToken
     @State private var showAlert: Bool = false
     @State private var alertMessage: String = ""
@@ -20,35 +21,45 @@ struct CloudSettingsSheet: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Turso Cloud SQLite")
                                 .font(.headline)
-                            Text("Database Serverless Gratis")
+                            Text("Database Serverless Cloud")
                                 .font(.caption2)
                                 .foregroundStyle(.secondary)
                         }
                     }
                     .padding(.vertical, 4)
-                    
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Database Endpoint:")
-                            .font(.caption2.bold())
-                            .foregroundStyle(.secondary)
-                        Text(TursoConfig.databaseURL)
-                            .font(.system(size: 11, design: .monospaced))
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                    }
                 } header: {
-                    Text("Konfigurasi Server")
+                    Text("Penyedia Cloud")
                 }
                 
                 Section {
-                    SecureField("Paste Auth Token Turso di sini...", text: $tokenInput)
+                    TextField("libsql://... atau https://...", text: $urlInput)
+                        .autocorrectionDisabled()
+                        .textInputAutocapitalization(.never)
+                        .keyboardType(.URL)
+                    
+                    if !urlInput.isEmpty {
+                        Button {
+                            urlInput = ""
+                        } label: {
+                            Text("Hapus URL")
+                                .font(.caption)
+                                .foregroundStyle(.red)
+                        }
+                    }
+                } header: {
+                    Text("Database URL")
+                } footer: {
+                    Text("Mendukung format 'libsql://...' maupun 'https://...'. Bila menggunakan libsql://, otomatis dikonversi ke protokol HTTPS.")
+                }
+                
+                Section {
+                    SecureField("Paste Auth Token Turso...", text: $tokenInput)
                         .autocorrectionDisabled()
                         .textInputAutocapitalization(.never)
                     
                     if !tokenInput.isEmpty {
                         Button {
                             tokenInput = ""
-                            syncService.updateAuthToken("")
                         } label: {
                             Text("Hapus Token")
                                 .font(.caption)
@@ -74,12 +85,16 @@ struct CloudSettingsSheet: View {
                                 .fontWeight(.semibold)
                         }
                     }
-                    .disabled(tokenInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isTestingConnection)
+                    .disabled(
+                        urlInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
+                        tokenInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
+                        isTestingConnection
+                    )
                     
                     if let status = syncService.lastSyncStatus {
                         HStack(spacing: 8) {
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundStyle(.green)
+                            Image(systemName: syncService.isConnected ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                                .foregroundStyle(syncService.isConnected ? .green : .orange)
                             Text(status)
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
@@ -106,8 +121,11 @@ struct CloudSettingsSheet: View {
     }
     
     private func testConnection() {
+        let cleanURL = urlInput.trimmingCharacters(in: .whitespacesAndNewlines)
         let cleanToken = tokenInput.trimmingCharacters(in: .whitespacesAndNewlines)
-        syncService.updateAuthToken(cleanToken)
+        
+        syncService.updateCredentials(url: cleanURL, token: cleanToken)
+        urlInput = TursoConfig.databaseURL // Update displayed URL to normalized form
         isTestingConnection = true
         
         Task {

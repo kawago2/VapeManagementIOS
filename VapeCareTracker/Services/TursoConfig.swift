@@ -18,14 +18,34 @@ struct TursoConfig {
         return plist
     }()
     
-    // Database URL HTTPS endpoint for Turso libSQL over HTTP
-    static var databaseURL: String {
-        if let envURL = secretsDict?["TURSO_DATABASE_URL"] as? String,
-           !envURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-           !envURL.contains("YOUR_TURSO_DATABASE_URL") {
-            return envURL.trimmingCharacters(in: .whitespacesAndNewlines)
+    // Helper to normalize libsql:// to https://
+    static func normalizeURL(_ rawURL: String) -> String {
+        var clean = rawURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        if clean.lowercased().hasPrefix("libsql://") {
+            clean = "https://" + clean.dropFirst("libsql://".count)
         }
-        return UserDefaults.standard.string(forKey: databaseURLKey) ?? defaultDatabaseURL
+        // Remove trailing slash if present
+        if clean.hasSuffix("/") {
+            clean = String(clean.dropLast())
+        }
+        return clean
+    }
+    
+    // Database URL: prioritizes Secrets.plist, then stored UserDefaults
+    static var databaseURL: String {
+        get {
+            if let envURL = secretsDict?["TURSO_DATABASE_URL"] as? String,
+               !envURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+               !envURL.contains("YOUR_TURSO_DATABASE_URL") {
+                return normalizeURL(envURL)
+            }
+            let stored = UserDefaults.standard.string(forKey: databaseURLKey) ?? defaultDatabaseURL
+            return normalizeURL(stored)
+        }
+        set {
+            let normalized = normalizeURL(newValue)
+            UserDefaults.standard.set(normalized, forKey: databaseURLKey)
+        }
     }
     
     // Auth Token: prioritizes Secrets.plist, then stored UserDefaults
@@ -44,6 +64,6 @@ struct TursoConfig {
     }
     
     static var isConfigured: Bool {
-        !authToken.isEmpty
+        !databaseURL.isEmpty && !authToken.isEmpty
     }
 }

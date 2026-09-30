@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 import SwiftData
 
 @MainActor
@@ -10,6 +11,11 @@ final class VapeDashboardViewModel: ObservableObject {
     @Published var tanks: [TankSetup] = []
     @Published var batteries: [BatteryItem] = []
     @Published var liquids: [LiquidItem] = []
+    
+    // Refresh & Toast feedback state
+    @Published var isRefreshing: Bool = false
+    @Published var toastMessage: String? = nil
+    @Published var isToastError: Bool = false
     
     // Status metrics
     var overdueCoilCount: Int {
@@ -41,26 +47,86 @@ final class VapeDashboardViewModel: ObservableObject {
         
         // Alur utama: Ambil (pull) data dari DB terlebih dahulu
         if TursoConfig.isConfigured {
-            await pullFromCloud()
+            await pullFromCloud(showToast: false)
         }
     }
     
-    // 1. Get dari DB
-    func pullFromCloud() async {
+    // 1. Get dari DB dengan feedback Toast & Animasi
+    func pullFromCloud(showToast: Bool = true) async {
+        let startTime = Date()
+        withAnimation(.easeInOut(duration: 0.2)) {
+            isRefreshing = true
+        }
+        syncService.isSyncing = true
+        
+        defer {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                isRefreshing = false
+            }
+            syncService.isSyncing = false
+        }
+        
+        guard TursoConfig.isConfigured else {
+            if showToast {
+                // Beri sedikit jeda agar icon sempat berputar
+                try? await Task.sleep(nanoseconds: 400_000_000)
+                showToastNotification("Database URL atau Auth Token belum disetel", isError: true)
+            }
+            return
+        }
+        
         do {
             try await syncService.pullDataFromCloud(repository: repository)
             loadAllData()
             notificationService.scheduleReminders(for: tanks)
             syncService.lastSyncDate = Date()
-            syncService.lastSyncStatus = "Berhasil memuat data dari cloud."
+            syncService.lastSyncStatus = "Data berhasil dimuat dari cloud!"
+            
+            // Pastikan animasi berputar minimal 500ms agar terasa feedbacknya oleh user
+            let elapsed = Date().timeIntervalSince(startTime)
+            if elapsed < 0.5 {
+                let remainingNs = UInt64((0.5 - elapsed) * 1_000_000_000)
+                try? await Task.sleep(nanoseconds: remainingNs)
+            }
+            
+            if showToast {
+                showToastNotification("Sinkronisasi cloud berhasil!")
+            }
         } catch {
-            print("Cloud pull error: \(error.localizedDescription)")
-            syncService.lastSyncStatus = "Gagal memuat: \(error.localizedDescription)"
+            let errorText = error.localizedDescription
+            print("Cloud pull error: \(errorText)")
+            syncService.lastSyncStatus = "Gagal memuat: \(errorText)"
+            
+            let elapsed = Date().timeIntervalSince(startTime)
+            if elapsed < 0.5 {
+                let remainingNs = UInt64((0.5 - elapsed) * 1_000_000_000)
+                try? await Task.sleep(nanoseconds: remainingNs)
+            }
+            
+            if showToast {
+                showToastNotification("Gagal refresh: \(errorText)", isError: true)
+            }
         }
     }
     
     func syncWithCloud() async {
-        await pullFromCloud()
+        await pullFromCloud(showToast: true)
+    }
+    
+    private func showToastNotification(_ message: String, isError: Bool = false) {
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+            self.toastMessage = message
+            self.isToastError = isError
+        }
+        
+        Task {
+            try? await Task.sleep(nanoseconds: 3_000_000_000)
+            withAnimation(.easeInOut(duration: 0.3)) {
+                if self.toastMessage == message {
+                    self.toastMessage = nil
+                }
+            }
+        }
     }
     
     func loadAllData() {

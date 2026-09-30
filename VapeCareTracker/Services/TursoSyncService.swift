@@ -9,6 +9,7 @@ protocol TursoSyncServiceProtocol: AnyObject, ObservableObject {
     var isConnected: Bool { get }
     
     func updateAuthToken(_ token: String)
+    func updateCredentials(url: String, token: String)
     func executeSQL(queries: [String]) async throws -> [[String: Any]]
     func initializeTables() async throws
     func pullDataFromCloud(repository: VapeDataRepositoryProtocol) async throws
@@ -39,6 +40,16 @@ final class TursoSyncService: TursoSyncServiceProtocol {
     
     // Update token and connection status reactively
     func updateAuthToken(_ token: String) {
+        TursoConfig.authToken = token
+        self.isConnected = TursoConfig.isConfigured
+        if !self.isConnected {
+            self.lastSyncStatus = nil
+        }
+    }
+    
+    // Update both database URL and token
+    func updateCredentials(url: String, token: String) {
+        TursoConfig.databaseURL = url
         TursoConfig.authToken = token
         self.isConnected = TursoConfig.isConfigured
         if !self.isConnected {

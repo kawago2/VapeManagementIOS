@@ -37,6 +37,7 @@ struct VapeManagementDashboardView: View {
     @State private var isAddingLiquid: Bool = false
     
     @State private var showingCloudSettings: Bool = false
+    @State private var isAnimatingRefresh: Bool = false
     @ObservedObject private var syncService = TursoSyncService.shared
     
     // Quick Reset Alerts
@@ -82,6 +83,9 @@ struct VapeManagementDashboardView: View {
                 .padding(.top, 8)
                 .padding(.bottom, 24)
             }
+            .refreshable {
+                await viewModel.syncWithCloud()
+            }
             .background(Color(.systemGroupedBackground).ignoresSafeArea())
             .navigationTitle("Vape Management")
             .navigationBarTitleDisplayMode(.inline)
@@ -100,19 +104,25 @@ struct VapeManagementDashboardView: View {
                 
                 ToolbarItem(placement: .topBarTrailing) {
                     HStack(spacing: 12) {
-                        if syncService.isConnected {
-                            Button {
-                                Task {
-                                    await viewModel.syncWithCloud()
+                        Button {
+                            Task {
+                                await viewModel.syncWithCloud()
+                            }
+                        } label: {
+                            Image(systemName: "arrow.triangle.2.circlepath")
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundStyle(syncService.isConnected ? Color.blue : Color.secondary)
+                                .rotationEffect(.degrees(isAnimatingRefresh ? 360 : 0))
+                        }
+                        .disabled(viewModel.isRefreshing)
+                        .onChange(of: viewModel.isRefreshing) { _, refreshing in
+                            if refreshing {
+                                withAnimation(.linear(duration: 0.8).repeatForever(autoreverses: false)) {
+                                    isAnimatingRefresh = true
                                 }
-                            } label: {
-                                if syncService.isSyncing {
-                                    ProgressView()
-                                        .controlSize(.small)
-                                } else {
-                                    Image(systemName: "arrow.triangle.2.circlepath")
-                                        .font(.system(size: 15, weight: .semibold))
-                                        .foregroundStyle(Color.blue)
+                            } else {
+                                withAnimation(.default) {
+                                    isAnimatingRefresh = false
                                 }
                             }
                         }
@@ -224,6 +234,31 @@ struct VapeManagementDashboardView: View {
                 await viewModel.onAppear()
             }
         }
+        .overlay(alignment: .top) {
+            if let toast = viewModel.toastMessage {
+                HStack(spacing: 8) {
+                    Image(systemName: viewModel.isToastError ? "exclamationmark.circle.fill" : "checkmark.circle.fill")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(viewModel.isToastError ? Color.red : Color.green)
+                    
+                    Text(toast)
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(Color.primary)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+                .background(.regularMaterial)
+                .clipShape(Capsule())
+                .shadow(color: Color.black.opacity(0.18), radius: 10, y: 5)
+                .padding(.top, 12)
+                .transition(.asymmetric(
+                    insertion: .move(edge: .top).combined(with: .opacity),
+                    removal: .opacity
+                ))
+                .zIndex(9999)
+            }
+        }
+        .animation(.spring(response: 0.35, dampingFraction: 0.8), value: viewModel.toastMessage)
     }
     
     // MARK: - Toolbar & Header Views
