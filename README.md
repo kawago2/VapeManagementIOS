@@ -1,61 +1,89 @@
-# VapeCare Tracker (Native iOS App)
+# VapeCare (iOS Native)
 
-Aplikasi native iOS offline-first untuk melacak masa pakai komponen vape (Kapas, Koil, dan Baterai) menggunakan **SwiftUI** dan **SwiftData** (iOS 17+).
-
----
-
-## 📁 Struktur Direktori Proyek
-
-```text
-.
-├── project.yml                        # Konfigurasi XcodeGen (Single Source of Truth)
-├── VapeCareTracker.xcodeproj          # Generated project via XcodeGen
-├── README.md                          # Dokumentasi setup
-└── VapeCareTracker/
-    ├── App/
-    │   └── VapeCareTrackerApp.swift   # Entry point & persistent container setup (Documents Directory)
-    ├── Models/
-    │   └── VapeModel.swift            # SwiftData @Model VapeSetup & Health Calculator logic
-    ├── Services/
-    │   └── NotificationManager.swift  # Local Notification handler & background reminders
-    └── Views/
-        ├── DashboardView.swift        # Dashboard utama & ringkasan status perangkat
-        ├── ComponentCardView.swift    # Komponen Card dinamis, Progress Bar & Quick Action
-        └── EditDatesView.swift        # Modal form ubah tanggal & batas maksimal hari
-```
+A personal vape device management and maintenance app built natively for iOS using **SwiftUI** and **SwiftData** (iOS 17+). Supports persistent offline storage on-device and cloud database synchronization via **Turso (libSQL)**.
 
 ---
 
-## 🛠️ XcodeGen Setup
+## Features
 
-Proyek ini menggunakan [XcodeGen](https://github.com/yonaskolb/XcodeGen) sehingga Anda tidak perlu commit file `.xcodeproj` ke Git repository.
+- **Battery Management**: Track charging cycles, purchase history, and battery health degradation indicators.
+- **E-Liquid Management**: Monitor remaining bottle volume, nicotine strength, and flavor history.
+- **Tank & Coil Management**: Real-time coil and cotton lifespan tracking with component replacement logs.
+- **Turso Database Synchronization**: Two-way data synchronization (push and pull) via the Turso REST API, configurable via runtime config or the in-app settings UI.
+- **Local Notifications**: Automated scheduled reminders via `UNUserNotificationCenter` when component lifespan thresholds are reached.
 
-### 1. Generate Project File
+---
 
-Jalankan perintah berikut di root folder:
+## Technical Specifications
+
+- **Platform & Target OS**: iOS 17.0+
+- **Language & Framework**: Swift, SwiftUI
+- **Local Storage**: SwiftData with persistent store explicitly directed to the `Documents Directory` (preserves data across Xcode rebuilds and re-signing).
+- **Cloud Database**: Turso / libSQL HTTP API
+- **Notifications**: UserNotifications Framework (`UNUserNotificationCenter`)
+- **Project Generator**: [XcodeGen](https://github.com/yonaskolb/XcodeGen)
+
+---
+
+## Installation & Setup
+
+### 1. Generate Project via XcodeGen
+Ensure `xcodegen` is installed on your Mac (`brew install xcodegen`). Run the following command in the root folder:
 
 ```bash
 xcodegen generate
 ```
 
-Project `VapeCareTracker.xcodeproj` akan otomatis terbuat.
+The `VapeCare.xcodeproj` project file will be generated automatically.
 
-### 2. Build via Terminal (Opsional)
+### 2. Environment Configuration (Turso Credentials)
+Create a `Config.xcconfig` file or configure credentials directly in the app settings:
 
-```bash
-xcodebuild -project VapeCareTracker.xcodeproj -scheme VapeCareTracker -destination "generic/platform=iOS Simulator" clean build
+```text
+TURSO_DATABASE_URL = https://<your-database-name>.turso.io
+TURSO_AUTH_TOKEN = <your-turso-auth-token>
 ```
 
-Atau buka langsung file project di Xcode:
+### 3. Build & Run the App
+
+Open in Xcode:
 ```bash
-open VapeCareTracker.xcodeproj
+open VapeCare.xcodeproj
+```
+
+Build via Terminal (iOS Simulator):
+```bash
+xcodebuild -project VapeCare.xcodeproj -scheme VapeCare -destination "generic/platform=iOS Simulator" clean build
 ```
 
 ---
 
-## ⚙️ Detail Konfigurasi
+## Directory Structure
 
-- **Target OS**: iOS 17.0+
-- **Bundle ID**: `com.local.vapecare`
-- **Penyimpanan Lokal**: SwiftData dengan `.store` diarahkan eksplisit ke `Documents directory` (aman dari data wipe saat re-sign atau build ulang via Xcode).
-- **Notifikasi**: `UNUserNotificationCenter` terjadwal lokal jam 09:00 pagi saat hari batas pemakaian tiba.
+```text
+.
+├── project.yml                   # XcodeGen configuration (Single Source of Truth)
+├── VapeCare.xcodeproj            # Generated project via XcodeGen
+└── VapeCare/
+    ├── App/                      # App entry point & container setup
+    ├── Models/                   # SwiftData entities & health calculation logic
+    ├── Repositories/             # Data abstraction for local & cloud sync
+    ├── Services/                 # Turso API client & Local Notification Manager
+    ├── Views/                    # Main views & dashboard layouts
+    └── Widgets/                  # Reusable UI cards, dialogs, and progress bars
+```
+
+---
+
+## Git Commit Message Convention
+
+Format used for commit messages:
+
+```text
+[TYPE] (SCOPE) Description of changes
+```
+
+Examples:
+- `[FEAT] (TURSO) Add libSQL HTTP sync integration`
+- `[FIX] (SWIFTDATA) Fix persistent store migration issue`
+- `[CHORE] (DOCS) Update README file`
