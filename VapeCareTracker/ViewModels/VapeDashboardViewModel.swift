@@ -29,11 +29,18 @@ final class VapeDashboardViewModel: ObservableObject {
     init(
         repository: VapeDataRepositoryProtocol,
         notificationService: NotificationServiceProtocol,
-        syncService: any TursoSyncServiceProtocol = TursoSyncService.shared
+        syncService: any TursoSyncServiceProtocol
     ) {
         self.repository = repository
         self.notificationService = notificationService
         self.syncService = syncService
+    }
+    
+    convenience init(
+        repository: VapeDataRepositoryProtocol,
+        notificationService: NotificationServiceProtocol
+    ) {
+        self.init(repository: repository, notificationService: notificationService, syncService: TursoSyncService.shared)
     }
     
     convenience init(repository: VapeDataRepositoryProtocol) {
