@@ -88,6 +88,8 @@ final class VapeDashboardViewModel: ObservableObject {
     
     // 1. Get dari DB dengan feedback Toast & Animasi
     func pullFromCloud(showToast: Bool = true) async {
+        guard !isRefreshing else { return }
+        
         let startTime = Date()
         withAnimation(.easeInOut(duration: 0.2)) {
             isRefreshing = true
@@ -127,6 +129,12 @@ final class VapeDashboardViewModel: ObservableObject {
             if showToast {
                 showToastNotification("Sinkronisasi cloud berhasil!")
             }
+        } catch is CancellationError {
+            // Task dibatalkan oleh SwiftUI (misal scroll dilepas, gesture selesai, atau tap ganda)
+            print("Cloud pull task cancelled normally.")
+        } catch let urlError as URLError where urlError.code == .cancelled {
+            // URLSession task dibatalkan
+            print("Cloud pull network cancelled.")
         } catch {
             let errorText = error.localizedDescription
             print("Cloud pull error: \(errorText)")
