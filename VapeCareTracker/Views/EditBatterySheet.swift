@@ -27,32 +27,32 @@ struct EditBatterySheet: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Battery Identity") {
-                    TextField("Battery ID (e.g. BAT-01)", text: $code)
-                    TextField("Brand / Model (e.g. PVR Battery 18650)", text: $brandAndType)
-                    TextField("Notes / Paired Set (optional)", text: $notes)
+                Section(L10n.BatteryForm.identitySection) {
+                    TextField(L10n.BatteryForm.idPlaceholder, text: $code)
+                    TextField(L10n.BatteryForm.brandPlaceholder, text: $brandAndType)
+                    TextField(L10n.BatteryForm.notesPlaceholder, text: $notes)
                 }
                 
                 Section {
                     DatePicker(
-                        "Purchase Date",
+                        L10n.BatteryForm.purchaseDate,
                         selection: $purchasedDate,
                         in: ...Date(),
                         displayedComponents: [.date]
                     )
-                    Stepper("Lifespan Limit: \(maxDays) Days", value: $maxDays, in: 30...730, step: 15)
+                    Stepper(L10n.BatteryForm.lifespanLimit(maxDays), value: $maxDays, in: 30...730, step: 15)
                 } header: {
-                    Text("History & Lifespan Limit")
+                    Text(L10n.BatteryForm.historySection)
                 }
             }
-            .navigationTitle(battery == nil ? "Add Battery" : "Edit Battery")
+            .navigationTitle(battery == nil ? L10n.BatteryForm.addTitle : L10n.BatteryForm.editTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button(L10n.Common.cancel) { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
+                    Button(L10n.Common.save) {
                         onSaveBattery?(code, brandAndType, purchasedDate, maxDays, notes)
                         dismiss()
                     }

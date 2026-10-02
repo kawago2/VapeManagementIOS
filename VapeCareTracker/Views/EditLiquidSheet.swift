@@ -27,38 +27,38 @@ struct EditLiquidSheet: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("E-Liquid Identity") {
-                    TextField("E-Liquid Name (e.g. Butterbread Peanut Butter)", text: $name)
+                Section(L10n.LiquidForm.identitySection) {
+                    TextField(L10n.LiquidForm.namePlaceholder, text: $name)
                     
                     HStack {
-                        TextField("Nicotine (e.g. 3mg)", text: $nicMg)
+                        TextField(L10n.LiquidForm.nicPlaceholder, text: $nicMg)
                         Divider()
-                        TextField("Volume (e.g. 60ml)", text: $volumeMl)
+                        TextField(L10n.LiquidForm.volumePlaceholder, text: $volumeMl)
                     }
                 }
                 
                 Section {
                     DatePicker(
-                        "Opened / Purchase Date",
+                        L10n.LiquidForm.openedDate,
                         selection: $openedDate,
                         in: ...Date(),
                         displayedComponents: [.date]
                     )
-                    Stepper("Shelf Life Limit: \(maxDays) Days", value: $maxDays, in: 30...365, step: 15)
+                    Stepper(L10n.LiquidForm.shelfLifeLimit(maxDays), value: $maxDays, in: 30...365, step: 15)
                 } header: {
-                    Text("History & Liquid Age")
+                    Text(L10n.LiquidForm.historySection)
                 } footer: {
-                    Text("Opened bottles are typically recommended to be consumed within 30 - 90 days for optimal flavor and nicotine profile.")
+                    Text(L10n.LiquidForm.shelfLifeFooter)
                 }
             }
-            .navigationTitle(liquid == nil ? "Add E-Liquid" : "Edit E-Liquid")
+            .navigationTitle(liquid == nil ? L10n.LiquidForm.addTitle : L10n.LiquidForm.editTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button(L10n.Common.cancel) { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
+                    Button(L10n.Common.save) {
                         onSaveLiquid?(name.trimmingCharacters(in: .whitespacesAndNewlines), openedDate, maxDays, nicMg, volumeMl)
                         dismiss()
                     }

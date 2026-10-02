@@ -51,8 +51,8 @@ struct CompactBatteryRowView: View {
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .shadow(color: Color.black.opacity(0.02), radius: 3, y: 1)
         .contextMenu {
-            Button("Edit", action: onEdit)
-            Button("Delete", role: .destructive, action: onDelete)
+            Button(L10n.Common.edit, action: onEdit)
+            Button(L10n.Common.delete, role: .destructive, action: onDelete)
         }
     }
 }

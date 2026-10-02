@@ -30,14 +30,14 @@ struct CloudSettingsSheet: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Turso Cloud SQLite")
                                 .font(.headline)
-                            Text("Database Serverless Cloud")
+                            Text(L10n.CloudSettings.serverlessSub)
                                 .font(.caption2)
                                 .foregroundStyle(.secondary)
                         }
                     }
                     .padding(.vertical, 4)
                 } header: {
-                    Text("Cloud Provider")
+                    Text(L10n.CloudSettings.providerHeader)
                 }
                 
                 Section {
@@ -50,19 +50,19 @@ struct CloudSettingsSheet: View {
                         Button {
                             urlInput = ""
                         } label: {
-                            Text("Clear URL")
+                            Text(L10n.CloudSettings.clearUrl)
                                 .font(.caption)
                                 .foregroundStyle(.red)
                         }
                     }
                 } header: {
-                    Text("Database URL")
+                    Text(L10n.CloudSettings.urlHeader)
                 } footer: {
-                    Text("Supports 'libsql://...' or 'https://...'. If using libsql://, it will be automatically converted to HTTPS.")
+                    Text(L10n.CloudSettings.urlFooter)
                 }
                 
                 Section {
-                    SecureField("Paste Turso Auth Token...", text: $tokenInput)
+                    SecureField(L10n.CloudSettings.tokenPlaceholder, text: $tokenInput)
                         .autocorrectionDisabled()
                         .textInputAutocapitalization(.never)
                     
@@ -70,15 +70,15 @@ struct CloudSettingsSheet: View {
                         Button {
                             tokenInput = ""
                         } label: {
-                            Text("Clear Token")
+                            Text(L10n.CloudSettings.clearToken)
                                 .font(.caption)
                                 .foregroundStyle(.red)
                         }
                     }
                 } header: {
-                    Text("Auth Token")
+                    Text(L10n.CloudSettings.tokenHeader)
                 } footer: {
-                    Text("Obtain token from '+ Create Token' in your Turso dashboard.")
+                    Text(L10n.CloudSettings.tokenFooter)
                 }
                 
                 Section {
@@ -90,7 +90,7 @@ struct CloudSettingsSheet: View {
                                 ProgressView()
                                     .padding(.trailing, 6)
                             }
-                            Text("Save & Test Connection")
+                            Text(L10n.CloudSettings.testButton)
                                 .fontWeight(.semibold)
                         }
                     }
@@ -117,11 +117,11 @@ struct CloudSettingsSheet: View {
                             let url = try viewModel.exportJSON()
                             self.exportURL = url
                         } catch {
-                            alertMessage = String(localized: "Failed to create JSON backup: \(error.localizedDescription)")
+                            alertMessage = "Failed to create JSON backup: \(error.localizedDescription)"
                             showAlert = true
                         }
                     } label: {
-                        Label("Export Full Backup (JSON)", systemImage: "arrow.down.doc.fill")
+                        Label(L10n.CloudSettings.exportJson, systemImage: "arrow.down.doc.fill")
                     }
                     
                     Button {
@@ -129,30 +129,30 @@ struct CloudSettingsSheet: View {
                             let url = try viewModel.exportCSV()
                             self.exportURL = url
                         } catch {
-                            alertMessage = String(localized: "Failed to create CSV report: \(error.localizedDescription)")
+                            alertMessage = "Failed to create CSV report: \(error.localizedDescription)"
                             showAlert = true
                         }
                     } label: {
-                        Label("Export Spreadsheet Report (CSV)", systemImage: "tablecells.badge.ellipsis")
+                        Label(L10n.CloudSettings.exportCsv, systemImage: "tablecells.badge.ellipsis")
                     }
                 } header: {
-                    Text("Backup & Export Data")
+                    Text(L10n.CloudSettings.backupHeader)
                 } footer: {
-                    Text("Export local data for backup or to open in Spreadsheet apps like Excel or Numbers.")
+                    Text(L10n.CloudSettings.backupFooter)
                 }
             }
-            .navigationTitle("Cloud Settings")
+            .navigationTitle(L10n.CloudSettings.title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") {
+                    Button(L10n.Common.done) {
                         dismiss()
                     }
                     .fontWeight(.bold)
                 }
             }
-            .alert("Turso Connection", isPresented: $showAlert) {
-                Button("OK") {}
+            .alert(L10n.CloudSettings.alertTitle, isPresented: $showAlert) {
+                Button(L10n.Common.ok) {}
             } message: {
                 Text(alertMessage)
             }

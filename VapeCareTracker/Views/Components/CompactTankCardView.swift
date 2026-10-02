@@ -135,8 +135,8 @@ struct CompactTankCardView: View {
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         .shadow(color: Color.black.opacity(0.02), radius: 5, y: 1)
         .contextMenu {
-            Button("Edit Setup", action: onEdit)
-            Button("Delete Tank", role: .destructive, action: onDelete)
+            Button(L10n.Dashboard.Actions.editSetup, action: onEdit)
+            Button(L10n.Dashboard.Actions.deleteTank, role: .destructive, action: onDelete)
         }
     }
 }

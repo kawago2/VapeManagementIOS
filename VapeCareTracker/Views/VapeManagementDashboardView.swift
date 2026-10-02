@@ -16,10 +16,10 @@ struct VapeManagementDashboardView: View {
         
         var title: LocalizedStringKey {
             switch self {
-            case .overview: return "All"
-            case .tanks: return "Tanks & Coils"
-            case .batteries: return "Batteries"
-            case .liquids: return "E-Liquids"
+            case .overview: return L10n.Dashboard.Tabs.overview
+            case .tanks: return L10n.Dashboard.Tabs.tanks
+            case .batteries: return L10n.Dashboard.Tabs.batteries
+            case .liquids: return L10n.Dashboard.Tabs.liquids
             }
         }
         
@@ -93,9 +93,9 @@ struct VapeManagementDashboardView: View {
                 .padding(.top, 8)
                 .padding(.bottom, 24)
             }
-            .searchable(text: $viewModel.searchText, prompt: "Search tanks, batteries, or liquids...")
+            .searchable(text: $viewModel.searchText, prompt: Text(L10n.Dashboard.searchPrompt))
             .background(Color(.systemGroupedBackground).ignoresSafeArea())
-            .navigationTitle("Vape Management")
+            .navigationTitle(L10n.Dashboard.title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
@@ -229,9 +229,9 @@ struct VapeManagementDashboardView: View {
                     )
                 }
             }
-            .alert("Confirm Reset", isPresented: $showingQuickResetAlert, presenting: quickResetTank) { tank in
-                Button("Cancel", role: .cancel) {}
-                Button("Yes, Just Replaced") {
+            .alert(L10n.Dashboard.Alerts.confirmReset, isPresented: $showingQuickResetAlert, presenting: quickResetTank) { tank in
+                Button(L10n.Common.cancel, role: .cancel) {}
+                Button(L10n.Dashboard.Actions.quickReplaced) {
                     if quickResetTarget == "cotton" {
                         viewModel.quickResetCotton(for: tank)
                     } else if quickResetTarget == "coil" {
@@ -239,15 +239,16 @@ struct VapeManagementDashboardView: View {
                     }
                 }
             } message: { tank in
-                Text("Update replacement date of \(quickResetTarget == "cotton" ? "cotton" : "coil") for '\(tank.tankName)' to today?")
+                let targetName = quickResetTarget == "cotton" ? String(localized: "dashboard.status.cotton") : String(localized: "dashboard.status.coil")
+                Text(L10n.Dashboard.Alerts.resetMessage(target: targetName, name: tank.tankName))
             }
-            .alert("Delete Item", isPresented: $showingDeleteAlert, presenting: itemToDelete) { item in
-                Button("Cancel", role: .cancel) {}
-                Button("Delete", role: .destructive) {
+            .alert(L10n.Dashboard.Alerts.deleteItem, isPresented: $showingDeleteAlert, presenting: itemToDelete) { item in
+                Button(L10n.Common.cancel, role: .cancel) {}
+                Button(L10n.Common.delete, role: .destructive) {
                     performDelete(item)
                 }
             } message: { item in
-                Text("Are you sure you want to delete '\(item.title)'?")
+                Text(L10n.Dashboard.Alerts.deleteMessage(name: item.title))
             }
             .task {
                 await viewModel.onAppear()
@@ -283,9 +284,9 @@ struct VapeManagementDashboardView: View {
     // MARK: - Toolbar & Header Views
     private var addMenuButton: some View {
         Menu {
-            Button { isAddingTank = true } label: { Label("Add Tank", systemImage: "atom") }
-            Button { isAddingBattery = true } label: { Label("Add Battery", systemImage: "battery.100.bolt") }
-            Button { isAddingLiquid = true } label: { Label("Add E-Liquid", systemImage: "drop.fill") }
+            Button { isAddingTank = true } label: { Label(L10n.Dashboard.Actions.addTank, systemImage: "atom") }
+            Button { isAddingBattery = true } label: { Label(L10n.Dashboard.Actions.addBattery, systemImage: "battery.100.bolt") }
+            Button { isAddingLiquid = true } label: { Label(L10n.Dashboard.Actions.addLiquid, systemImage: "drop.fill") }
         } label: {
             Image(systemName: "plus.circle.fill")
                 .font(.system(size: 20))
@@ -324,10 +325,10 @@ struct VapeManagementDashboardView: View {
     // MARK: - Sections
     private var tankSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            sectionHeader(title: "TANKS & SETUPS", count: viewModel.filteredTanks.count, onAdd: { isAddingTank = true })
+            sectionHeader(title: L10n.Dashboard.Sections.tanks, count: viewModel.filteredTanks.count, onAdd: { isAddingTank = true })
             
             if viewModel.filteredTanks.isEmpty {
-                emptyPlaceholder(text: viewModel.searchText.isEmpty ? "No tanks set up yet." : "No matching tanks found.")
+                emptyPlaceholder(text: viewModel.searchText.isEmpty ? L10n.Dashboard.Placeholders.emptyTanks : L10n.Dashboard.Placeholders.noMatchingTanks)
             } else {
                 VStack(spacing: 10) {
                     ForEach(viewModel.filteredTanks) { tank in
@@ -359,10 +360,10 @@ struct VapeManagementDashboardView: View {
     
     private var batterySection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            sectionHeader(title: "BATTERY INVENTORY", count: viewModel.filteredBatteries.count, onAdd: { isAddingBattery = true })
+            sectionHeader(title: L10n.Dashboard.Sections.batteries, count: viewModel.filteredBatteries.count, onAdd: { isAddingBattery = true })
             
             if viewModel.filteredBatteries.isEmpty {
-                emptyPlaceholder(text: viewModel.searchText.isEmpty ? "No batteries registered." : "No matching batteries found.")
+                emptyPlaceholder(text: viewModel.searchText.isEmpty ? L10n.Dashboard.Placeholders.emptyBatteries : L10n.Dashboard.Placeholders.noMatchingBatteries)
             } else {
                 VStack(spacing: 6) {
                     ForEach(viewModel.filteredBatteries) { battery in
@@ -382,10 +383,10 @@ struct VapeManagementDashboardView: View {
     
     private var liquidSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            sectionHeader(title: "LIQUID COLLECTION", count: viewModel.filteredLiquids.count, onAdd: { isAddingLiquid = true })
+            sectionHeader(title: L10n.Dashboard.Sections.liquids, count: viewModel.filteredLiquids.count, onAdd: { isAddingLiquid = true })
             
             if viewModel.filteredLiquids.isEmpty {
-                emptyPlaceholder(text: viewModel.searchText.isEmpty ? "No liquids registered." : "No matching liquids found.")
+                emptyPlaceholder(text: viewModel.searchText.isEmpty ? L10n.Dashboard.Placeholders.emptyLiquids : L10n.Dashboard.Placeholders.noMatchingLiquids)
             } else {
                 VStack(spacing: 6) {
                     ForEach(viewModel.filteredLiquids) { liquid in
@@ -404,7 +405,7 @@ struct VapeManagementDashboardView: View {
     }
     
     // MARK: - Subview Helpers
-    private func sectionHeader(title: String, count: Int, onAdd: @escaping () -> Void) -> some View {
+    private func sectionHeader(title: LocalizedStringKey, count: Int, onAdd: @escaping () -> Void) -> some View {
         HStack {
             Text(title)
                 .font(.system(size: 11, weight: .bold))
@@ -429,7 +430,7 @@ struct VapeManagementDashboardView: View {
         .padding(.horizontal, 4)
     }
     
-    private func emptyPlaceholder(text: String, icon: String = "tray") -> some View {
+    private func emptyPlaceholder(text: LocalizedStringKey, icon: String = "tray") -> some View {
         HStack(spacing: 8) {
             Image(systemName: icon)
                 .font(.system(size: 13))

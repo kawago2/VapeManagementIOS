@@ -53,7 +53,7 @@ final class NotificationManager: ObservableObject, NotificationServiceProtocol {
             // Cotton reminder
             scheduleDateNotification(
                 identifier: "cotton_\(tank.id.uuidString)",
-                title: String(localized: "Time to Change Cotton! 💨"),
+                title: String(localized: "Time to Change Cotton!"),
                 body: "\(tank.tankName): " + String(localized: "Cotton has reached the limit (\(tank.cottonMaxDays) days)."),
                 startDate: tank.cottonReplacedDate,
                 targetDays: tank.cottonMaxDays
@@ -62,7 +62,7 @@ final class NotificationManager: ObservableObject, NotificationServiceProtocol {
             // Coil reminder
             scheduleDateNotification(
                 identifier: "coil_\(tank.id.uuidString)",
-                title: String(localized: "Time to Check/Change Coil! ⚡️"),
+                title: String(localized: "Time to Check/Change Coil!"),
                 body: "\(tank.tankName): " + String(localized: "Coil age has reached (\(tank.coilMaxDays) days)."),
                 startDate: tank.coilInstalledDate,
                 targetDays: tank.coilMaxDays

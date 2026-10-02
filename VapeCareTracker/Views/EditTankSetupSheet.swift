@@ -37,13 +37,13 @@ struct EditTankSetupSheet: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Tank & Wire Identity") {
-                    TextField("Device / Tank (e.g. TRML Tank)", text: $tankName)
-                    TextField("Installed Wire (e.g. Baby Alien 0.35Ω)", text: $wireType)
+                Section(L10n.TankForm.identitySection) {
+                    TextField(L10n.TankForm.devicePlaceholder, text: $tankName)
+                    TextField(L10n.TankForm.wirePlaceholder, text: $wireType)
                     
-                    Picker("Active E-Liquid", selection: $activeLiquidName) {
+                    Picker(L10n.TankForm.activeLiquid, selection: $activeLiquidName) {
                         if existingLiquids.isEmpty {
-                            Text("No liquid data available").tag("")
+                            Text(L10n.TankForm.noLiquid).tag("")
                         } else {
                             ForEach(existingLiquids) { liquid in
                                 Text(liquid.name).tag(liquid.name)
@@ -54,36 +54,36 @@ struct EditTankSetupSheet: View {
                 
                 Section {
                     DatePicker(
-                        "Coil Installation Date",
+                        L10n.TankForm.coilDate,
                         selection: $coilInstalledDate,
                         in: ...Date(),
                         displayedComponents: [.date]
                     )
-                    Stepper("Coil Lifespan Limit: \(coilMaxDays) Days", value: $coilMaxDays, in: 1...60)
+                    Stepper(L10n.TankForm.coilLimit(coilMaxDays), value: $coilMaxDays, in: 1...60)
                 } header: {
-                    Text("Coil Settings")
+                    Text(L10n.TankForm.coilSection)
                 }
                 
                 Section {
                     DatePicker(
-                        "Cotton Replacement Date",
+                        L10n.TankForm.cottonDate,
                         selection: $cottonReplacedDate,
                         in: ...Date(),
                         displayedComponents: [.date]
                     )
-                    Stepper("Cotton Lifespan Limit: \(cottonMaxDays) Days", value: $cottonMaxDays, in: 1...30)
+                    Stepper(L10n.TankForm.cottonLimit(cottonMaxDays), value: $cottonMaxDays, in: 1...30)
                 } header: {
-                    Text("Cotton Settings")
+                    Text(L10n.TankForm.cottonSection)
                 }
             }
-            .navigationTitle(tank == nil ? "Add Tank" : "Edit Tank Setup")
+            .navigationTitle(tank == nil ? L10n.TankForm.addTitle : L10n.TankForm.editTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button(L10n.Common.cancel) { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
+                    Button(L10n.Common.save) {
                         onSaveTank?(
                             tankName,
                             wireType,

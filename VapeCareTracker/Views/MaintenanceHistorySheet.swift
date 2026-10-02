@@ -19,17 +19,17 @@ struct MaintenanceHistorySheet: View {
             Group {
                 if viewModel.maintenanceLogs.isEmpty {
                     ContentUnavailableView(
-                        "No Maintenance History",
+                        L10n.History.emptyTitle,
                         systemImage: "clock.arrow.circlepath",
-                        description: Text("Coil and cotton replacements will be automatically recorded here.")
+                        description: Text(L10n.History.emptyDescription)
                     )
                 } else {
                     List {
                         Section {
-                            Picker("Filter Type", selection: $filterAction) {
-                                Text("All").tag("all")
-                                Text("Coil").tag("coil")
-                                Text("Cotton").tag("cotton")
+                            Picker(L10n.History.filterType, selection: $filterAction) {
+                                Text(L10n.History.filterAll).tag("all")
+                                Text(L10n.History.filterCoil).tag("coil")
+                                Text(L10n.History.filterCotton).tag("cotton")
                             }
                             .pickerStyle(.segmented)
                             .listRowBackground(Color.clear)
@@ -42,7 +42,7 @@ struct MaintenanceHistorySheet: View {
                             }
                             .onDelete(perform: deleteLog)
                         } header: {
-                            Text("Activity List (\(filteredLogs.count))")
+                            Text(L10n.History.activityList(filteredLogs.count))
                                 .font(.caption.bold())
                                 .textCase(.uppercase)
                                 .foregroundStyle(.secondary)
@@ -51,11 +51,11 @@ struct MaintenanceHistorySheet: View {
                     .listStyle(.insetGrouped)
                 }
             }
-            .navigationTitle("Maintenance History")
+            .navigationTitle(L10n.History.title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") {
+                    Button(L10n.Common.done) {
                         dismiss()
                     }
                     .font(.body.bold())
@@ -106,7 +106,7 @@ private struct MaintenanceLogRow: View {
                 }
                 
                 HStack(spacing: 6) {
-                    Text(isCoil ? "Coil Changed" : "Cotton Changed")
+                    Text(isCoil ? L10n.History.coilChanged : L10n.History.cottonChanged)
                         .font(.system(size: 11, weight: .semibold))
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
