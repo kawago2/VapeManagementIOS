@@ -17,6 +17,40 @@ final class VapeDashboardViewModel: ObservableObject {
     @Published var toastMessage: String? = nil
     @Published var isToastError: Bool = false
     
+    // Search query state
+    @Published var searchText: String = ""
+    
+    // Filtered Collections berdasarkan searchText
+    var filteredTanks: [TankSetup] {
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard !query.isEmpty else { return tanks }
+        return tanks.filter {
+            $0.tankName.lowercased().contains(query) ||
+            $0.wireType.lowercased().contains(query) ||
+            $0.activeLiquidName.lowercased().contains(query)
+        }
+    }
+    
+    var filteredBatteries: [BatteryItem] {
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard !query.isEmpty else { return batteries }
+        return batteries.filter {
+            $0.code.lowercased().contains(query) ||
+            $0.brandAndType.lowercased().contains(query) ||
+            $0.notes.lowercased().contains(query)
+        }
+    }
+    
+    var filteredLiquids: [LiquidItem] {
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard !query.isEmpty else { return liquids }
+        return liquids.filter {
+            $0.name.lowercased().contains(query) ||
+            $0.nicMg.lowercased().contains(query) ||
+            $0.volumeMl.lowercased().contains(query)
+        }
+    }
+    
     // Status metrics
     var overdueCoilCount: Int {
         tanks.filter { $0.coilHealthStatus.isOverdue }.count

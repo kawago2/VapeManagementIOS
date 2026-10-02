@@ -86,6 +86,7 @@ struct VapeManagementDashboardView: View {
             .refreshable {
                 await viewModel.syncWithCloud()
             }
+            .searchable(text: $viewModel.searchText, prompt: "Cari tank, baterai, atau liquid...")
             .background(Color(.systemGroupedBackground).ignoresSafeArea())
             .navigationTitle("Vape Management")
             .navigationBarTitleDisplayMode(.inline)
@@ -305,13 +306,13 @@ struct VapeManagementDashboardView: View {
     // MARK: - Sections
     private var tankSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            sectionHeader(title: "TANK & SETUP", count: viewModel.tanks.count, onAdd: { isAddingTank = true })
+            sectionHeader(title: "TANK & SETUP", count: viewModel.filteredTanks.count, onAdd: { isAddingTank = true })
             
-            if viewModel.tanks.isEmpty {
-                emptyPlaceholder(text: "Belum ada tank terpasang.")
+            if viewModel.filteredTanks.isEmpty {
+                emptyPlaceholder(text: viewModel.searchText.isEmpty ? "Belum ada tank terpasang." : "Tidak ada tank yang cocok.")
             } else {
                 VStack(spacing: 10) {
-                    ForEach(viewModel.tanks) { tank in
+                    ForEach(viewModel.filteredTanks) { tank in
                         CompactTankCardView(
                             tank: tank,
                             liquids: viewModel.liquids,
@@ -340,13 +341,13 @@ struct VapeManagementDashboardView: View {
     
     private var batterySection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            sectionHeader(title: "BATERAI 18650 & CHARGER", count: viewModel.batteries.count, onAdd: { isAddingBattery = true })
+            sectionHeader(title: "BATERAI 18650 & CHARGER", count: viewModel.filteredBatteries.count, onAdd: { isAddingBattery = true })
             
-            if viewModel.batteries.isEmpty {
-                emptyPlaceholder(text: "Belum ada baterai terdaftar.")
+            if viewModel.filteredBatteries.isEmpty {
+                emptyPlaceholder(text: viewModel.searchText.isEmpty ? "Belum ada baterai terdaftar." : "Tidak ada baterai yang cocok.")
             } else {
                 VStack(spacing: 6) {
-                    ForEach(viewModel.batteries) { battery in
+                    ForEach(viewModel.filteredBatteries) { battery in
                         CompactBatteryRowView(
                             battery: battery,
                             onEdit: { batteryToEdit = battery },
@@ -363,13 +364,13 @@ struct VapeManagementDashboardView: View {
     
     private var liquidSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            sectionHeader(title: "DAFTAR & USIA LIQUID", count: viewModel.liquids.count, onAdd: { isAddingLiquid = true })
+            sectionHeader(title: "DAFTAR & USIA LIQUID", count: viewModel.filteredLiquids.count, onAdd: { isAddingLiquid = true })
             
-            if viewModel.liquids.isEmpty {
-                emptyPlaceholder(text: "Belum ada liquid terdaftar.")
+            if viewModel.filteredLiquids.isEmpty {
+                emptyPlaceholder(text: viewModel.searchText.isEmpty ? "Belum ada liquid terdaftar." : "Tidak ada liquid yang cocok.")
             } else {
                 VStack(spacing: 6) {
-                    ForEach(viewModel.liquids) { liquid in
+                    ForEach(viewModel.filteredLiquids) { liquid in
                         CompactLiquidRowView(
                             liquid: liquid,
                             onEdit: { liquidToEdit = liquid },
