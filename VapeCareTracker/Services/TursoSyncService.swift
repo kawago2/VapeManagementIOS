@@ -19,6 +19,7 @@ protocol TursoSyncServiceProtocol: AnyObject, ObservableObject {
     func uploadLiquid(_ liq: LiquidItem) async
     func deleteFromCloud(table: String, id: UUID) async
     func syncTwoWay(repository: VapeDataRepositoryProtocol) async throws
+    func processPendingQueue() async
 }
 
 // MARK: - Turso SQLite Sync Service
@@ -32,9 +33,14 @@ final class TursoSyncService: TursoSyncServiceProtocol {
     @Published var isConnected: Bool = TursoConfig.isConfigured
     
     private let urlSession: URLSession
+    private let offlineQueue: OfflineQueueManagerProtocol
     
-    init(urlSession: URLSession = .shared) {
+    init(
+        urlSession: URLSession = .shared,
+        offlineQueue: OfflineQueueManagerProtocol = OfflineQueueManager.shared
+    ) {
         self.urlSession = urlSession
+        self.offlineQueue = offlineQueue
         self.isConnected = TursoConfig.isConfigured
     }
     
@@ -328,13 +334,13 @@ final class TursoSyncService: TursoSyncServiceProtocol {
         do {
             _ = try await executeSQL(queries: [sql])
         } catch {
-            print("Failed to upload tank to cloud: \(error.localizedDescription)")
+            print("Failed to upload tank to cloud, queuing: \(error.localizedDescription)")
+            offlineQueue.enqueue(query: sql, description: "Upload tank: \(tank.tankName)")
         }
     }
     
     // Upload single battery change / addition to cloud
     func uploadBattery(_ bat: BatteryItem) async {
-        guard isConnected else { return }
         let yyyyMMddFormatter: DateFormatter = {
             let df = DateFormatter()
             df.dateFormat = "yyyy-MM-dd"
@@ -349,16 +355,21 @@ final class TursoSyncService: TursoSyncServiceProtocol {
         
         let sql = "INSERT OR REPLACE INTO batteries (id, code, brand_and_type, purchased_date, max_days, notes) VALUES ('\(bat.id.uuidString)', '\(safeCode)', '\(safeBrand)', '\(buyDate)', \(bat.maxDays), '\(safeNotes)');"
         
+        guard isConnected else {
+            offlineQueue.enqueue(query: sql, description: "Upload battery: \(bat.code)")
+            return
+        }
+        
         do {
             _ = try await executeSQL(queries: [sql])
         } catch {
-            print("Failed to upload battery to cloud: \(error.localizedDescription)")
+            print("Failed to upload battery to cloud, queuing: \(error.localizedDescription)")
+            offlineQueue.enqueue(query: sql, description: "Upload battery: \(bat.code)")
         }
     }
     
     // Upload single liquid change / addition to cloud
     func uploadLiquid(_ liq: LiquidItem) async {
-        guard isConnected else { return }
         let yyyyMMddFormatter: DateFormatter = {
             let df = DateFormatter()
             df.dateFormat = "yyyy-MM-dd"
@@ -373,21 +384,33 @@ final class TursoSyncService: TursoSyncServiceProtocol {
         
         let sql = "INSERT OR REPLACE INTO liquids (id, name, opened_date, max_days, nic_mg, volume_ml) VALUES ('\(liq.id.uuidString)', '\(safeName)', '\(openDate)', \(liq.maxDays), '\(safeNic)', '\(safeVol)');"
         
+        guard isConnected else {
+            offlineQueue.enqueue(query: sql, description: "Upload liquid: \(liq.name)")
+            return
+        }
+        
         do {
             _ = try await executeSQL(queries: [sql])
         } catch {
-            print("Failed to upload liquid to cloud: \(error.localizedDescription)")
+            print("Failed to upload liquid to cloud, queuing: \(error.localizedDescription)")
+            offlineQueue.enqueue(query: sql, description: "Upload liquid: \(liq.name)")
         }
     }
     
     // Delete items from cloud
     func deleteFromCloud(table: String, id: UUID) async {
-        guard isConnected else { return }
         let sql = "DELETE FROM \(table) WHERE id = '\(id.uuidString)';"
+        
+        guard isConnected else {
+            offlineQueue.enqueue(query: sql, description: "Delete \(table): \(id.uuidString)")
+            return
+        }
+        
         do {
             _ = try await executeSQL(queries: [sql])
         } catch {
-            print("Failed to delete from \(table): \(error.localizedDescription)")
+            print("Failed to delete from \(table), queuing: \(error.localizedDescription)")
+            offlineQueue.enqueue(query: sql, description: "Delete \(table): \(id.uuidString)")
         }
     }
     
@@ -396,10 +419,13 @@ final class TursoSyncService: TursoSyncServiceProtocol {
         self.isSyncing = true
         defer { self.isSyncing = false }
         
-        // Step 1: Pull data terbaru dari Cloud ke lokal
+        // Step 1: Flus pending offline queue terlebih dahulu jika ada
+        await processPendingQueue()
+        
+        // Step 2: Pull data terbaru dari Cloud ke lokal
         try await pullDataFromCloud(repository: repository)
         
-        // Step 2: Push semua data terkini lokal ke Cloud
+        // Step 3: Push semua data terkini lokal ke Cloud
         let currentTanks = try repository.fetchTanks()
         let currentBatteries = try repository.fetchBatteries()
         let currentLiquids = try repository.fetchLiquids()
@@ -412,5 +438,26 @@ final class TursoSyncService: TursoSyncServiceProtocol {
         
         self.lastSyncDate = Date()
         self.lastSyncStatus = "Sinkronisasi 2 arah berhasil!"
+    }
+    
+    // Process and flush offline queue items when reconnected
+    func processPendingQueue() async {
+        let pending = offlineQueue.getPendingQueue()
+        guard !pending.isEmpty, isConnected else { return }
+        
+        var succeededIds: [UUID] = []
+        for item in pending {
+            do {
+                _ = try await executeSQL(queries: [item.query])
+                succeededIds.append(item.id)
+            } catch {
+                print("Failed to replay queued query: \(item.description) - \(error.localizedDescription)")
+                break // Stop on error to preserve FIFO ordering
+            }
+        }
+        
+        for id in succeededIds {
+            offlineQueue.remove(id: id)
+        }
     }
 }
