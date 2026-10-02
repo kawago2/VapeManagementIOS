@@ -416,19 +416,20 @@ final class VapeDashboardViewModel: ObservableObject {
     }
     
     private func syncWidgetSnapshot() {
-        guard let primaryTank = tanks.first else { return }
-        let snapshot = WidgetTankSnapshot(
-            tankName: primaryTank.tankName,
-            wireType: primaryTank.wireType,
-            activeLiquid: primaryTank.activeLiquidName,
-            coilDaysPassed: primaryTank.coilDaysPassed,
-            coilMaxDays: primaryTank.coilMaxDays,
-            coilOverdue: primaryTank.coilHealthStatus.isOverdue,
-            cottonDaysPassed: primaryTank.cottonDaysPassed,
-            cottonMaxDays: primaryTank.cottonMaxDays,
-            cottonOverdue: primaryTank.cottonHealthStatus.isOverdue,
-            updatedAt: Date()
-        )
-        WidgetDataStore.shared.saveSnapshot(snapshot)
+        let items: [WidgetTankItem] = tanks.map { tank in
+            WidgetTankItem(
+                id: tank.id.uuidString,
+                tankName: tank.tankName,
+                wireType: tank.wireType,
+                activeLiquid: tank.activeLiquidName,
+                coilDaysPassed: tank.coilDaysPassed,
+                coilMaxDays: tank.coilMaxDays,
+                coilOverdue: tank.coilHealthStatus.isOverdue,
+                cottonDaysPassed: tank.cottonDaysPassed,
+                cottonMaxDays: tank.cottonMaxDays,
+                cottonOverdue: tank.cottonHealthStatus.isOverdue
+            )
+        }
+        WidgetDataStore.shared.saveTanks(items)
     }
 }

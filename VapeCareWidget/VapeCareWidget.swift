@@ -1,5 +1,6 @@
 import WidgetKit
 import SwiftUI
+import AppIntents
 
 // MARK: - Widget Timeline Provider
 struct VapeCareWidgetProvider: TimelineProvider {
@@ -8,18 +9,18 @@ struct VapeCareWidgetProvider: TimelineProvider {
     }
 
     func getSnapshot(in context: Context, completion: @escaping (VapeCareWidgetEntry) -> Void) {
-        let snapshot = WidgetDataStore.shared.loadSnapshot() ?? .placeholder
+        let snapshot = WidgetDataStore.shared.loadSnapshot()
         let entry = VapeCareWidgetEntry(date: Date(), snapshot: snapshot)
         completion(entry)
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<VapeCareWidgetEntry>) -> Void) {
-        let snapshot = WidgetDataStore.shared.loadSnapshot() ?? .placeholder
+        let snapshot = WidgetDataStore.shared.loadSnapshot()
         let currentDate = Date()
         let entry = VapeCareWidgetEntry(date: currentDate, snapshot: snapshot)
         
-        // Refresh every 30 minutes
-        let nextUpdate = Calendar.current.date(byAdding: .minute, value: 30, to: currentDate) ?? currentDate.addingTimeInterval(1800)
+        // Refresh every 15 minutes
+        let nextUpdate = Calendar.current.date(byAdding: .minute, value: 15, to: currentDate) ?? currentDate.addingTimeInterval(900)
         let timeline = Timeline(entries: [entry], policy: .after(nextUpdate))
         completion(timeline)
     }
@@ -48,42 +49,85 @@ struct VapeCareWidgetEntryView: View {
     }
 }
 
-// MARK: - Small Widget (Compact Card)
+// MARK: - Small Widget (Interactive Carousel via Next/Prev Buttons)
 private struct SmallWidgetView: View {
     let snapshot: WidgetTankSnapshot
     
+    private var tank: WidgetTankItem? {
+        snapshot.currentTank
+    }
+    
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 6) {
+            // Header with navigation arrows
             HStack {
                 Image(systemName: "atom")
                     .font(.system(size: 13, weight: .bold))
                     .foregroundStyle(.purple)
-                Text(snapshot.tankName)
+                
+                Text(tank?.tankName ?? "Belum Ada Tank")
                     .font(.system(size: 13, weight: .bold))
                     .lineLimit(1)
+                
+                Spacer()
+                
+                if snapshot.tanks.count > 1 {
+                    HStack(spacing: 8) {
+                        Button(intent: PrevTankIntent()) {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 11, weight: .bold))
+                                .foregroundStyle(Color.secondary)
+                        }
+                        .buttonStyle(.plain)
+                        
+                        Button(intent: NextTankIntent()) {
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 11, weight: .bold))
+                                .foregroundStyle(Color.secondary)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
             }
             
-            Spacer()
-            
-            // Coil Progress
-            HealthRow(
-                icon: "flame.fill",
-                title: "Coil",
-                daysPassed: snapshot.coilDaysPassed,
-                maxDays: snapshot.coilMaxDays,
-                isOverdue: snapshot.coilOverdue,
-                tint: .orange
-            )
-            
-            // Cotton Progress
-            HealthRow(
-                icon: "wind",
-                title: "Kapas",
-                daysPassed: snapshot.cottonDaysPassed,
-                maxDays: snapshot.cottonMaxDays,
-                isOverdue: snapshot.cottonOverdue,
-                tint: .blue
-            )
+            if let activeTank = tank {
+                Spacer()
+                
+                HealthRow(
+                    icon: "flame.fill",
+                    title: "Coil",
+                    daysPassed: activeTank.coilDaysPassed,
+                    maxDays: activeTank.coilMaxDays,
+                    isOverdue: activeTank.coilOverdue,
+                    tint: .orange
+                )
+                
+                HealthRow(
+                    icon: "wind",
+                    title: "Kapas",
+                    daysPassed: activeTank.cottonDaysPassed,
+                    maxDays: activeTank.cottonMaxDays,
+                    isOverdue: activeTank.cottonOverdue,
+                    tint: .blue
+                )
+                
+                // Index indicator dots
+                if snapshot.tanks.count > 1 {
+                    HStack(spacing: 3) {
+                        ForEach(0..<snapshot.tanks.count, id: \.self) { idx in
+                            Circle()
+                                .fill(idx == snapshot.selectedIndex ? Color.primary : Color.secondary.opacity(0.3))
+                                .frame(width: 4, height: 4)
+                        }
+                    }
+                    .padding(.top, 2)
+                }
+            } else {
+                Spacer()
+                Text("Buka aplikasi untuk menambah tank.")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
         }
         .containerBackground(for: .widget) {
             Color(.secondarySystemBackground)
@@ -91,61 +135,104 @@ private struct SmallWidgetView: View {
     }
 }
 
-// MARK: - Medium Widget (Wide Detailed Card)
+// MARK: - Medium Widget (Interactive Carousel Card with Gauges)
 private struct MediumWidgetView: View {
     let snapshot: WidgetTankSnapshot
     
+    private var tank: WidgetTankItem? {
+        snapshot.currentTank
+    }
+    
     var body: some View {
-        HStack(spacing: 16) {
-            VStack(alignment: .leading, spacing: 6) {
-                HStack(spacing: 6) {
-                    Image(systemName: "atom")
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(.purple)
-                    Text(snapshot.tankName)
-                        .font(.system(size: 15, weight: .bold))
-                        .lineLimit(1)
-                }
-                
-                Text(snapshot.wireType)
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                
-                Spacer()
-                
-                HStack(spacing: 4) {
-                    Image(systemName: "drop.fill")
+        if let activeTank = tank {
+            HStack(spacing: 16) {
+                // Left Column: Tank Details & Navigation
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "atom")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundStyle(.purple)
+                        Text(activeTank.tankName)
+                            .font(.system(size: 15, weight: .bold))
+                            .lineLimit(1)
+                    }
+                    
+                    Text(activeTank.wireType)
                         .font(.system(size: 11))
-                        .foregroundStyle(.pink)
-                    Text(snapshot.activeLiquid.isEmpty ? "Tidak ada liquid" : snapshot.activeLiquid)
-                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(.secondary)
                         .lineLimit(1)
+                    
+                    Spacer()
+                    
+                    HStack(spacing: 4) {
+                        Image(systemName: "drop.fill")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.pink)
+                        Text(activeTank.activeLiquid.isEmpty ? "Tidak ada liquid" : activeTank.activeLiquid)
+                            .font(.system(size: 11, weight: .medium))
+                            .lineLimit(1)
+                    }
+                    
+                    // Carousel Pagination Controls (◀ 1/3 ▶)
+                    if snapshot.tanks.count > 1 {
+                        HStack(spacing: 12) {
+                            Button(intent: PrevTankIntent()) {
+                                Image(systemName: "chevron.backward.circle.fill")
+                                    .font(.system(size: 18))
+                                    .foregroundStyle(Color.secondary)
+                            }
+                            .buttonStyle(.plain)
+                            
+                            Text("\(snapshot.selectedIndex + 1) / \(snapshot.tanks.count)")
+                                .font(.system(size: 11, weight: .medium, design: .rounded))
+                                .foregroundStyle(.secondary)
+                            
+                            Button(intent: NextTankIntent()) {
+                                Image(systemName: "chevron.forward.circle.fill")
+                                    .font(.system(size: 18))
+                                    .foregroundStyle(Color.secondary)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                        .padding(.top, 2)
+                    }
+                }
+                
+                Divider()
+                
+                // Right Column: Live Health Gauges
+                VStack(spacing: 10) {
+                    HealthGauge(
+                        title: "Coil Health",
+                        daysPassed: activeTank.coilDaysPassed,
+                        maxDays: activeTank.coilMaxDays,
+                        isOverdue: activeTank.coilOverdue,
+                        tint: .orange
+                    )
+                    
+                    HealthGauge(
+                        title: "Cotton Health",
+                        daysPassed: activeTank.cottonDaysPassed,
+                        maxDays: activeTank.cottonMaxDays,
+                        isOverdue: activeTank.cottonOverdue,
+                        tint: .blue
+                    )
                 }
             }
-            
-            Divider()
-            
-            VStack(spacing: 10) {
-                HealthGauge(
-                    title: "Coil Health",
-                    daysPassed: snapshot.coilDaysPassed,
-                    maxDays: snapshot.coilMaxDays,
-                    isOverdue: snapshot.coilOverdue,
-                    tint: .orange
-                )
-                
-                HealthGauge(
-                    title: "Cotton Health",
-                    daysPassed: snapshot.cottonDaysPassed,
-                    maxDays: snapshot.cottonMaxDays,
-                    isOverdue: snapshot.cottonOverdue,
-                    tint: .blue
-                )
+            .containerBackground(for: .widget) {
+                Color(.secondarySystemBackground)
             }
-        }
-        .containerBackground(for: .widget) {
-            Color(.secondarySystemBackground)
+        } else {
+            VStack(spacing: 8) {
+                Image(systemName: "atom")
+                    .font(.title2)
+                    .foregroundStyle(.secondary)
+                Text("Belum ada tank vape tersimpan")
+                    .font(.subheadline.bold())
+            }
+            .containerBackground(for: .widget) {
+                Color(.secondarySystemBackground)
+            }
         }
     }
 }

@@ -24,6 +24,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.local.vapecare
         PRODUCT_NAME: VapeCareTracker
+        CODE_SIGN_ENTITLEMENTS: VapeCareTracker.entitlements
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: "VapeCare"
         UILaunchStoryboardName: "LaunchScreen"
@@ -47,12 +48,14 @@ targets:
     info:
       path: VapeCareWidget/Info.plist
       properties:
+        CFBundleShortVersionString: "1.0.0"
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.local.vapecare.widget
         PRODUCT_NAME: VapeCareWidget
+        CODE_SIGN_ENTITLEMENTS: VapeCareTracker.entitlements
         CODE_SIGN_IDENTITY: "-"
         CODE_SIGNING_REQUIRED: NO
         CODE_SIGN_STYLE: Manual
