@@ -28,23 +28,12 @@ final class VapeDashboardViewModel: ObservableObject {
     
     init(
         repository: VapeDataRepositoryProtocol,
-        notificationService: NotificationServiceProtocol,
-        syncService: any TursoSyncServiceProtocol
+        notificationService: NotificationServiceProtocol? = nil,
+        syncService: (any TursoSyncServiceProtocol)? = nil
     ) {
         self.repository = repository
-        self.notificationService = notificationService
-        self.syncService = syncService
-    }
-    
-    convenience init(
-        repository: VapeDataRepositoryProtocol,
-        notificationService: NotificationServiceProtocol
-    ) {
-        self.init(repository: repository, notificationService: notificationService, syncService: TursoSyncService.shared)
-    }
-    
-    convenience init(repository: VapeDataRepositoryProtocol) {
-        self.init(repository: repository, notificationService: NotificationManager.shared, syncService: TursoSyncService.shared)
+        self.notificationService = notificationService ?? NotificationManager.shared
+        self.syncService = syncService ?? TursoSyncService.shared
     }
     
     func onAppear() async {
