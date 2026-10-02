@@ -44,14 +44,15 @@ targets:
     sources:
       - path: VapeCareWidget
       - path: VapeCareTracker/Services/WidgetDataStore.swift
+    info:
+      path: VapeCareWidget/Info.plist
+      properties:
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.local.vapecare.widget
         PRODUCT_NAME: VapeCareWidget
-        GENERATE_INFOPLIST_FILE: YES
-        INFOPLIST_KEY_CFBundleDisplayName: "VapeCare Widget"
-        INFOPLIST_KEY_NSExtension:
-          NSExtensionPointIdentifier: "com.apple.widgetkit-extension"
         CODE_SIGN_IDENTITY: "-"
         CODE_SIGNING_REQUIRED: NO
         CODE_SIGN_STYLE: Manual
