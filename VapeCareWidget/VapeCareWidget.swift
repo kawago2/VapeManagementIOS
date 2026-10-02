@@ -145,37 +145,37 @@ private struct MediumWidgetView: View {
     
     var body: some View {
         if let activeTank = tank {
-            HStack(spacing: 16) {
+            HStack(spacing: 12) {
                 // Left Column: Tank Details & Navigation
-                VStack(alignment: .leading, spacing: 6) {
+                VStack(alignment: .leading, spacing: 4) {
                     HStack(spacing: 6) {
                         Image(systemName: "atom")
                             .font(.system(size: 14, weight: .bold))
                             .foregroundStyle(.purple)
                         Text(activeTank.tankName)
-                            .font(.system(size: 15, weight: .bold))
+                            .font(.system(size: 14, weight: .bold))
                             .lineLimit(1)
                     }
                     
                     Text(activeTank.wireType)
-                        .font(.system(size: 11))
+                        .font(.system(size: 10))
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                     
-                    Spacer()
+                    Spacer(minLength: 4)
                     
                     HStack(spacing: 4) {
                         Image(systemName: "drop.fill")
-                            .font(.system(size: 11))
+                            .font(.system(size: 10))
                             .foregroundStyle(.pink)
-                        Text(activeTank.activeLiquid.isEmpty ? "Tidak ada liquid" : activeTank.activeLiquid)
-                            .font(.system(size: 11, weight: .medium))
+                        Text(activeTank.activeLiquid.isEmpty ? "Tanpa liquid" : activeTank.activeLiquid)
+                            .font(.system(size: 10, weight: .medium))
                             .lineLimit(1)
                     }
                     
-                    // Carousel Pagination Controls (◀ 1/3 ▶)
+                    // Carousel Pagination Controls (◀ 1/2 ▶)
                     if snapshot.tanks.count > 1 {
-                        HStack(spacing: 12) {
+                        HStack(spacing: 10) {
                             Button(intent: PrevTankIntent()) {
                                 Image(systemName: "chevron.backward.circle.fill")
                                     .font(.system(size: 18))
@@ -197,11 +197,13 @@ private struct MediumWidgetView: View {
                         .padding(.top, 2)
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 
                 Divider()
+                    .overlay(Color.white.opacity(0.15))
                 
                 // Right Column: Live Health Gauges
-                VStack(spacing: 10) {
+                VStack(spacing: 12) {
                     HealthGauge(
                         title: "Coil Health",
                         daysPassed: activeTank.coilDaysPassed,
@@ -218,6 +220,7 @@ private struct MediumWidgetView: View {
                         tint: .blue
                     )
                 }
+                .frame(width: 140)
             }
             .containerBackground(for: .widget) {
                 Color.black
@@ -254,9 +257,9 @@ private struct HealthRow: View {
             Text(title)
                 .font(.system(size: 11, weight: .medium))
             Spacer()
-            Text("\(daysPassed)/\(maxDays)h")
+            Text("\(daysPassed)/\(maxDays) hr")
                 .font(.system(size: 11, weight: .bold))
-                .foregroundStyle(isOverdue ? .red : tint)
+                .foregroundStyle(isOverdue ? Color.red : Color.primary)
         }
     }
 }
@@ -274,27 +277,28 @@ private struct HealthGauge: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 3) {
+        VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text(title)
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(.secondary)
                 Spacer()
                 Text("\(daysPassed)/\(maxDays) hr")
                     .font(.system(size: 11, weight: .bold))
-                    .foregroundStyle(isOverdue ? .red : .primary)
+                    .foregroundStyle(isOverdue ? Color.red : Color.white)
             }
             
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
                     Capsule()
-                        .fill(Color(.tertiarySystemFill))
-                        .frame(height: 6)
+                        .fill(Color.white.opacity(0.12))
+                        .frame(height: 5)
                     Capsule()
                         .fill(isOverdue ? Color.red : tint)
-                        .frame(width: geo.size.width * CGFloat(progress), height: 6)
+                        .frame(width: max(4, geo.size.width * CGFloat(progress)), height: 5)
                 }
             }
-            .frame(height: 6)
+            .frame(height: 5)
         }
     }
 }
