@@ -174,4 +174,25 @@ enum L10n {
         static let cottonTitle = LocalizedStringKey("notification.cotton_title")
         static let coilTitle = LocalizedStringKey("notification.coil_title")
     }
+    
+    // MARK: - Tools & Calculator
+    enum Tools {
+        static let title = LocalizedStringKey("tools.title")
+        static let parameters = LocalizedStringKey("tools.parameters")
+        static let powerWatt = LocalizedStringKey("tools.power_watt")
+        static let batteryVolt = LocalizedStringKey("tools.battery_volt")
+        static let coilResistance = LocalizedStringKey("tools.coil_resistance")
+        static let calculatedResults = LocalizedStringKey("tools.calculated_results")
+        static let currentDraw = LocalizedStringKey("tools.current_draw")
+        static let safetyWarning = LocalizedStringKey("tools.safety_warning")
+        static let coilSpecs = LocalizedStringKey("tools.coil_specs")
+        static let targetResistance = LocalizedStringKey("tools.target_resistance")
+        static let wireGauge = LocalizedStringKey("tools.wire_gauge")
+        static let innerDiameter = LocalizedStringKey("tools.inner_diameter")
+        static let recommendation = LocalizedStringKey("tools.recommendation")
+        static let estimatedWraps = LocalizedStringKey("tools.estimated_wraps")
+        static let setupType = LocalizedStringKey("tools.setup_type")
+        static let singleCoil = LocalizedStringKey("tools.single_coil")
+        static let footerNote = LocalizedStringKey("tools.footer_note")
+    }
 }

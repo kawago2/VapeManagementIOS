@@ -66,24 +66,45 @@ struct CompactTankCardView: View {
             // Metrics Row
             HStack(spacing: 0) {
                 // Coil Metric
+                let coilProgress = min(1.0, Double(tank.coilDaysPassed) / Double(max(1, tank.coilMaxDays)))
+                let coilColor: Color = isCoilOverdue ? .red : (coilProgress >= 0.75 ? .orange : .green)
+                
                 HStack(spacing: 8) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("COIL")
-                            .font(.system(size: 9, weight: .bold))
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(L10n.Dashboard.Sections.tanks)
+                            .font(.system(size: 8, weight: .bold))
                             .foregroundStyle(.secondary)
+                        
                         HStack(alignment: .firstTextBaseline, spacing: 4) {
                             Text("\(tank.coilDaysPassed)")
-                                .font(.system(size: 16, weight: .bold))
-                                .foregroundStyle(isCoilOverdue ? Color.red : (tank.coilDaysPassed >= 10 ? Color.orange : Color.primary))
-                            Text("days")
-                                .font(.system(size: 11))
+                                .font(.system(size: 15, weight: .bold))
+                                .foregroundStyle(isCoilOverdue ? Color.red : (coilProgress >= 0.75 ? Color.orange : Color.primary))
+                            Text("/ \(tank.coilMaxDays)d")
+                                .font(.system(size: 10, weight: .medium))
                                 .foregroundStyle(.secondary)
                         }
+                        
+                        // Mini Progress Gauge
+                        GeometryReader { geo in
+                            ZStack(alignment: .leading) {
+                                Capsule()
+                                    .fill(Color(.systemGray5))
+                                    .frame(height: 3)
+                                Capsule()
+                                    .fill(coilColor)
+                                    .frame(width: max(3, geo.size.width * CGFloat(coilProgress)), height: 3)
+                            }
+                        }
+                        .frame(height: 3)
+                        .padding(.top, 2)
                     }
                     
-                    Spacer()
+                    Spacer(minLength: 4)
                     
-                    Button(action: onQuickResetCoil) {
+                    Button(action: {
+                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                        onQuickResetCoil()
+                    }) {
                         Image(systemName: "arrow.clockwise")
                             .font(.system(size: 11, weight: .semibold))
                             .foregroundStyle(.secondary)
@@ -97,27 +118,48 @@ struct CompactTankCardView: View {
                 .padding(.vertical, 10)
                 
                 Divider()
-                    .frame(height: 32)
+                    .frame(height: 36)
                 
                 // Cotton Metric
+                let cottonProgress = min(1.0, Double(tank.cottonDaysPassed) / Double(max(1, tank.cottonMaxDays)))
+                let cottonColor: Color = isCottonOverdue ? .red : (cottonProgress >= 0.75 ? .orange : .green)
+                
                 HStack(spacing: 8) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("COTTON")
-                            .font(.system(size: 9, weight: .bold))
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(L10n.History.filterCotton)
+                            .font(.system(size: 8, weight: .bold))
                             .foregroundStyle(.secondary)
+                        
                         HStack(alignment: .firstTextBaseline, spacing: 4) {
                             Text("\(tank.cottonDaysPassed)")
-                                .font(.system(size: 16, weight: .bold))
-                                .foregroundStyle(isCottonOverdue ? Color.red : Color.primary)
-                            Text("days")
-                                .font(.system(size: 11))
+                                .font(.system(size: 15, weight: .bold))
+                                .foregroundStyle(isCottonOverdue ? Color.red : (cottonProgress >= 0.75 ? Color.orange : Color.primary))
+                            Text("/ \(tank.cottonMaxDays)d")
+                                .font(.system(size: 10, weight: .medium))
                                 .foregroundStyle(.secondary)
                         }
+                        
+                        // Mini Progress Gauge
+                        GeometryReader { geo in
+                            ZStack(alignment: .leading) {
+                                Capsule()
+                                    .fill(Color(.systemGray5))
+                                    .frame(height: 3)
+                                Capsule()
+                                    .fill(cottonColor)
+                                    .frame(width: max(3, geo.size.width * CGFloat(cottonProgress)), height: 3)
+                            }
+                        }
+                        .frame(height: 3)
+                        .padding(.top, 2)
                     }
                     
-                    Spacer()
+                    Spacer(minLength: 4)
                     
-                    Button(action: onQuickResetCotton) {
+                    Button(action: {
+                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                        onQuickResetCotton()
+                    }) {
                         Image(systemName: "arrow.clockwise")
                             .font(.system(size: 11, weight: .semibold))
                             .foregroundStyle(.secondary)

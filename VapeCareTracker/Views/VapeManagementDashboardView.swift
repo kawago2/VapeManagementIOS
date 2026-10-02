@@ -47,6 +47,8 @@ struct VapeManagementDashboardView: View {
     
     @State private var showingCloudSettings: Bool = false
     @State private var showingMaintenanceHistory: Bool = false
+    @State private var showingCalculator: Bool = false
+    @State private var isSearchPresented: Bool = false
     @State private var isAnimatingRefresh: Bool = false
     @ObservedObject private var syncService = TursoSyncService.shared
     
@@ -67,6 +69,40 @@ struct VapeManagementDashboardView: View {
         NavigationStack {
             ScrollView(.vertical, showsIndicators: false) {
                 VStack(spacing: 16) {
+                    // Inline Collapsible Search Field (only shown when tapped)
+                    if isSearchPresented {
+                        HStack(spacing: 8) {
+                            Image(systemName: "magnifyingglass")
+                                .foregroundStyle(.secondary)
+                                .font(.system(size: 14))
+                            TextField(L10n.Dashboard.searchPrompt, text: $viewModel.searchText)
+                                .font(.system(size: 14))
+                                .autocorrectionDisabled()
+                            if !viewModel.searchText.isEmpty {
+                                Button {
+                                    viewModel.searchText = ""
+                                } label: {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .foregroundStyle(.secondary)
+                                        .font(.system(size: 14))
+                                }
+                            }
+                            Button(L10n.Common.cancel) {
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                                    isSearchPresented = false
+                                    viewModel.searchText = ""
+                                }
+                            }
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(Color.blue)
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(Color(.secondarySystemGroupedBackground))
+                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                    }
+                    
                     // 1. Compact Status Summary Pills
                     CompactStatusBarView(
                         overdueCoilCount: viewModel.overdueCoilCount,
@@ -77,23 +113,12 @@ struct VapeManagementDashboardView: View {
                     tabFilterBar
                     
                     // 3. Content Sections based on Tab
-                    if selectedTab == .overview || selectedTab == .tanks {
-                        tankSection
-                    }
-                    
-                    if selectedTab == .overview || selectedTab == .batteries {
-                        batterySection
-                    }
-                    
-                    if selectedTab == .overview || selectedTab == .liquids {
-                        liquidSection
-                    }
+                    mainContentView
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 8)
                 .padding(.bottom, 24)
             }
-            .searchable(text: $viewModel.searchText, prompt: Text(L10n.Dashboard.searchPrompt))
             .background(Color(.systemGroupedBackground).ignoresSafeArea())
             .navigationTitle(L10n.Dashboard.title)
             .navigationBarTitleDisplayMode(.inline)
@@ -112,6 +137,24 @@ struct VapeManagementDashboardView: View {
                 
                 ToolbarItem(placement: .topBarTrailing) {
                     HStack(spacing: 12) {
+                        Button {
+                            withAnimation {
+                                isSearchPresented.toggle()
+                            }
+                        } label: {
+                            Image(systemName: "magnifyingglass")
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundStyle(isSearchPresented ? Color.blue : Color.primary)
+                        }
+                        
+                        Button {
+                            showingCalculator = true
+                        } label: {
+                            Image(systemName: "bolt.badge.clock")
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundStyle(Color.primary)
+                        }
+                        
                         Button {
                             showingMaintenanceHistory = true
                         } label: {
@@ -146,6 +189,9 @@ struct VapeManagementDashboardView: View {
                         addMenuButton
                     }
                 }
+            }
+            .sheet(isPresented: $showingCalculator) {
+                OhmsLawCalculatorSheet()
             }
             .sheet(isPresented: $showingCloudSettings) {
                 CloudSettingsSheet(viewModel: viewModel)
@@ -319,6 +365,19 @@ struct VapeManagementDashboardView: View {
                 }
             }
             .padding(.vertical, 2)
+        }
+    }
+    
+    @ViewBuilder
+    private var mainContentView: some View {
+        if selectedTab == .overview || selectedTab == .tanks {
+            tankSection
+        }
+        if selectedTab == .overview || selectedTab == .batteries {
+            batterySection
+        }
+        if selectedTab == .overview || selectedTab == .liquids {
+            liquidSection
         }
     }
     
