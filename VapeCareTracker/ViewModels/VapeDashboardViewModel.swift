@@ -4,6 +4,7 @@ import SwiftData
 
 @MainActor
 final class VapeDashboardViewModel: ObservableObject {
+    
     private let repository: VapeDataRepositoryProtocol
     private let notificationService: NotificationServiceProtocol
     let syncService: any TursoSyncServiceProtocol
@@ -169,6 +170,7 @@ final class VapeDashboardViewModel: ObservableObject {
             self.batteries = try repository.fetchBatteries()
             self.liquids = try repository.fetchLiquids()
             self.maintenanceLogs = try repository.fetchMaintenanceLogs()
+            self.syncWidgetSnapshot()
         } catch {
             print("Error fetching data: \(error.localizedDescription)")
         }
@@ -411,5 +413,22 @@ final class VapeDashboardViewModel: ObservableObject {
         } catch {
             print("Error saving data: \(error.localizedDescription)")
         }
+    }
+    
+    private func syncWidgetSnapshot() {
+        guard let primaryTank = tanks.first else { return }
+        let snapshot = WidgetTankSnapshot(
+            tankName: primaryTank.tankName,
+            wireType: primaryTank.wireType,
+            activeLiquid: primaryTank.activeLiquidName,
+            coilDaysPassed: primaryTank.coilDaysPassed,
+            coilMaxDays: primaryTank.coilMaxDays,
+            coilOverdue: primaryTank.coilHealthStatus.isOverdue,
+            cottonDaysPassed: primaryTank.cottonDaysPassed,
+            cottonMaxDays: primaryTank.cottonMaxDays,
+            cottonOverdue: primaryTank.cottonHealthStatus.isOverdue,
+            updatedAt: Date()
+        )
+        WidgetDataStore.shared.saveSnapshot(snapshot)
     }
 }
