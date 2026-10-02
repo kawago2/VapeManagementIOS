@@ -130,7 +130,7 @@ private struct SmallWidgetView: View {
             }
         }
         .containerBackground(for: .widget) {
-            Color(.secondarySystemBackground)
+            Color.black
         }
     }
 }
@@ -220,7 +220,7 @@ private struct MediumWidgetView: View {
                 }
             }
             .containerBackground(for: .widget) {
-                Color(.secondarySystemBackground)
+                Color.black
             }
         } else {
             VStack(spacing: 8) {
@@ -231,7 +231,7 @@ private struct MediumWidgetView: View {
                     .font(.subheadline.bold())
             }
             .containerBackground(for: .widget) {
-                Color(.secondarySystemBackground)
+                Color.black
             }
         }
     }
