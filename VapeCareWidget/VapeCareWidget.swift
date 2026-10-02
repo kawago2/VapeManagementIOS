@@ -61,10 +61,6 @@ private struct SmallWidgetView: View {
         VStack(alignment: .leading, spacing: 6) {
             // Header with navigation arrows
             HStack {
-                Image(systemName: "atom")
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundStyle(.purple)
-                
                 Text(tank?.tankName ?? "Belum Ada Tank")
                     .font(.system(size: 13, weight: .bold))
                     .lineLimit(1)
@@ -148,14 +144,9 @@ private struct MediumWidgetView: View {
             HStack(spacing: 12) {
                 // Left Column: Tank Details & Navigation
                 VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "atom")
-                            .font(.system(size: 14, weight: .bold))
-                            .foregroundStyle(.purple)
-                        Text(activeTank.tankName)
-                            .font(.system(size: 14, weight: .bold))
-                            .lineLimit(1)
-                    }
+                    Text(activeTank.tankName)
+                        .font(.system(size: 15, weight: .bold))
+                        .lineLimit(1)
                     
                     Text(activeTank.wireType)
                         .font(.system(size: 10))
@@ -164,14 +155,10 @@ private struct MediumWidgetView: View {
                     
                     Spacer(minLength: 4)
                     
-                    HStack(spacing: 4) {
-                        Image(systemName: "drop.fill")
-                            .font(.system(size: 10))
-                            .foregroundStyle(.pink)
-                        Text(activeTank.activeLiquid.isEmpty ? "Tanpa liquid" : activeTank.activeLiquid)
-                            .font(.system(size: 10, weight: .medium))
-                            .lineLimit(1)
-                    }
+                    Text(activeTank.activeLiquid.isEmpty ? "Tanpa liquid" : activeTank.activeLiquid)
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundStyle(Color(red: 0.9, green: 0.9, blue: 0.9))
+                        .lineLimit(1)
                     
                     // Carousel Pagination Controls (◀ 1/2 ▶)
                     if snapshot.tanks.count > 1 {
