@@ -93,9 +93,6 @@ struct VapeManagementDashboardView: View {
                 .padding(.top, 8)
                 .padding(.bottom, 24)
             }
-            .refreshable {
-                await viewModel.syncWithCloud()
-            }
             .searchable(text: $viewModel.searchText, prompt: "Search tanks, batteries, or liquids...")
             .background(Color(.systemGroupedBackground).ignoresSafeArea())
             .navigationTitle("Vape Management")
