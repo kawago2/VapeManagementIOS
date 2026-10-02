@@ -142,7 +142,7 @@ struct VapeManagementDashboardView: View {
                 }
             }
             .sheet(isPresented: $showingCloudSettings) {
-                CloudSettingsSheet()
+                CloudSettingsSheet(viewModel: viewModel)
             }
             .sheet(isPresented: $showingMaintenanceHistory) {
                 MaintenanceHistorySheet(viewModel: viewModel)

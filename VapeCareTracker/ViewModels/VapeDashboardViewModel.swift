@@ -7,6 +7,7 @@ final class VapeDashboardViewModel: ObservableObject {
     private let repository: VapeDataRepositoryProtocol
     private let notificationService: NotificationServiceProtocol
     let syncService: any TursoSyncServiceProtocol
+    private let exportService: DataExportServiceProtocol
     
     @Published var tanks: [TankSetup] = []
     @Published var batteries: [BatteryItem] = []
@@ -64,11 +65,13 @@ final class VapeDashboardViewModel: ObservableObject {
     init(
         repository: VapeDataRepositoryProtocol,
         notificationService: NotificationServiceProtocol? = nil,
-        syncService: (any TursoSyncServiceProtocol)? = nil
+        syncService: (any TursoSyncServiceProtocol)? = nil,
+        exportService: DataExportServiceProtocol? = nil
     ) {
         self.repository = repository
         self.notificationService = notificationService ?? NotificationManager.shared
         self.syncService = syncService ?? TursoSyncService.shared
+        self.exportService = exportService ?? DataExportService.shared
     }
     
     func onAppear() async {
@@ -196,6 +199,25 @@ final class VapeDashboardViewModel: ObservableObject {
         } catch {
             print("Error deleting maintenance log: \(error.localizedDescription)")
         }
+    }
+    
+    // MARK: - Export / Backup Helpers
+    func exportJSON() throws -> URL {
+        return try exportService.generateJSONExport(
+            tanks: tanks,
+            batteries: batteries,
+            liquids: liquids,
+            logs: maintenanceLogs
+        )
+    }
+    
+    func exportCSV() throws -> URL {
+        return try exportService.generateCSVExport(
+            tanks: tanks,
+            batteries: batteries,
+            liquids: liquids,
+            logs: maintenanceLogs
+        )
     }
     
     // 2. Simpan dan Tambah Data (Enkapsulasi OOP & DIP)

@@ -1,7 +1,13 @@
 import SwiftUI
 
+struct IdentifiableURL: Identifiable {
+    let id = UUID()
+    let url: URL
+}
+
 struct CloudSettingsSheet: View {
     @Environment(\.dismiss) private var dismiss
+    @ObservedObject var viewModel: VapeDashboardViewModel
     @StateObject private var syncService = TursoSyncService.shared
     
     @State private var urlInput: String = TursoConfig.databaseURL
@@ -9,6 +15,9 @@ struct CloudSettingsSheet: View {
     @State private var showAlert: Bool = false
     @State private var alertMessage: String = ""
     @State private var isTestingConnection: Bool = false
+    
+    @State private var exportURL: URL? = nil
+    @State private var isExporting: Bool = false
     
     var body: some View {
         NavigationStack {
@@ -101,6 +110,36 @@ struct CloudSettingsSheet: View {
                         }
                     }
                 }
+                
+                Section {
+                    Button {
+                        do {
+                            let url = try viewModel.exportJSON()
+                            self.exportURL = url
+                        } catch {
+                            alertMessage = "Gagal membuat backup JSON: \(error.localizedDescription)"
+                            showAlert = true
+                        }
+                    } label: {
+                        Label("Export Cadangan Lengkap (JSON)", systemImage: "arrow.down.doc.fill")
+                    }
+                    
+                    Button {
+                        do {
+                            let url = try viewModel.exportCSV()
+                            self.exportURL = url
+                        } catch {
+                            alertMessage = "Gagal membuat laporan CSV: \(error.localizedDescription)"
+                            showAlert = true
+                        }
+                    } label: {
+                        Label("Export Laporan Tabel (CSV)", systemImage: "tablecells.badge.ellipsis")
+                    }
+                } header: {
+                    Text("Cadangan & Ekspor Data")
+                } footer: {
+                    Text("Ekspor data lokal untuk dicadangkan atau dibuka di aplikasi Spreadsheet seperti Excel / Numbers.")
+                }
             }
             .navigationTitle("Pengaturan Cloud")
             .navigationBarTitleDisplayMode(.inline)
@@ -116,6 +155,12 @@ struct CloudSettingsSheet: View {
                 Button("OK") {}
             } message: {
                 Text(alertMessage)
+            }
+            .sheet(item: Binding<IdentifiableURL?>(
+                get: { exportURL.map { IdentifiableURL(url: $0) } },
+                set: { exportURL = $0?.url }
+            )) { identifiableURL in
+                ShareSheet(activityItems: [identifiableURL.url])
             }
         }
     }
