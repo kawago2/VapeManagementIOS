@@ -23,7 +23,7 @@ final class VapeDashboardViewModel: ObservableObject {
     // Search query state
     @Published var searchText: String = ""
     
-    // Filtered Collections berdasarkan searchText
+    // Filtered collections based on searchText
     var filteredTanks: [TankSetup] {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         guard !query.isEmpty else { return tanks }
@@ -80,13 +80,13 @@ final class VapeDashboardViewModel: ObservableObject {
         _ = await notificationService.requestAuthorization()
         notificationService.scheduleReminders(for: tanks)
         
-        // Alur utama: Ambil (pull) data dari DB terlebih dahulu
+        // Primary flow: Pull data from remote cloud database if configured
         if TursoConfig.isConfigured {
             await pullFromCloud(showToast: false)
         }
     }
     
-    // 1. Get dari DB dengan feedback Toast & Animasi
+    // Fetch data from database with animated feedback and toast
     func pullFromCloud(showToast: Bool = true) async {
         guard !isRefreshing else { return }
         
@@ -105,9 +105,9 @@ final class VapeDashboardViewModel: ObservableObject {
         
         guard TursoConfig.isConfigured else {
             if showToast {
-                // Beri sedikit jeda agar icon sempat berputar
+                // Brief pause so the refresh spinner remains perceptible
                 try? await Task.sleep(nanoseconds: 400_000_000)
-                showToastNotification("Database URL atau Auth Token belum disetel", isError: true)
+                showToastNotification(String(localized: "Database URL atau Auth Token belum disetel"), isError: true)
             }
             return
         }
@@ -117,9 +117,9 @@ final class VapeDashboardViewModel: ObservableObject {
             loadAllData()
             notificationService.scheduleReminders(for: tanks)
             syncService.lastSyncDate = Date()
-            syncService.lastSyncStatus = "Data berhasil dimuat dari cloud!"
+            syncService.lastSyncStatus = String(localized: "Data berhasil dimuat dari cloud!")
             
-            // Pastikan animasi berputar minimal 500ms agar terasa feedbacknya oleh user
+            // Ensure spinner displays for at least 500ms for user feedback
             let elapsed = Date().timeIntervalSince(startTime)
             if elapsed < 0.5 {
                 let remainingNs = UInt64((0.5 - elapsed) * 1_000_000_000)
@@ -127,18 +127,18 @@ final class VapeDashboardViewModel: ObservableObject {
             }
             
             if showToast {
-                showToastNotification("Sinkronisasi cloud berhasil!")
+                showToastNotification(String(localized: "Sinkronisasi cloud berhasil!"))
             }
         } catch is CancellationError {
-            // Task dibatalkan oleh SwiftUI (misal scroll dilepas, gesture selesai, atau tap ganda)
+            // Task was cancelled normally by SwiftUI (e.g. scroll release, navigation)
             print("Cloud pull task cancelled normally.")
         } catch let urlError as URLError where urlError.code == .cancelled {
-            // URLSession task dibatalkan
+            // URLSession task was cancelled
             print("Cloud pull network cancelled.")
         } catch {
             let errorText = error.localizedDescription
             print("Cloud pull error: \(errorText)")
-            syncService.lastSyncStatus = "Gagal memuat: \(errorText)"
+            syncService.lastSyncStatus = String(localized: "Gagal memuat: \(errorText)")
             
             let elapsed = Date().timeIntervalSince(startTime)
             if elapsed < 0.5 {
@@ -147,7 +147,7 @@ final class VapeDashboardViewModel: ObservableObject {
             }
             
             if showToast {
-                showToastNotification("Gagal refresh: \(errorText)", isError: true)
+                showToastNotification(String(localized: "Gagal refresh: \(errorText)"), isError: true)
             }
         }
     }
@@ -230,7 +230,7 @@ final class VapeDashboardViewModel: ObservableObject {
         )
     }
     
-    // 2. Simpan dan Tambah Data (Enkapsulasi OOP & DIP)
+    // MARK: - Save and Insert Operations (OOP & DIP Encaspulation)
     func saveTank(
         existing: TankSetup?,
         tankName: String,
@@ -340,7 +340,7 @@ final class VapeDashboardViewModel: ObservableObject {
     func quickResetCotton(for tank: TankSetup) {
         tank.cottonReplacedDate = Date()
         saveAndSyncNotifications()
-        recordMaintenanceLog(tankId: tank.id, tankName: tank.tankName, actionType: "cotton", notes: "Ganti kapas baru")
+        recordMaintenanceLog(tankId: tank.id, tankName: tank.tankName, actionType: "cotton", notes: "Installed fresh cotton")
         Task {
             await syncService.uploadTank(tank)
         }
@@ -349,7 +349,7 @@ final class VapeDashboardViewModel: ObservableObject {
     func quickResetCoil(for tank: TankSetup) {
         tank.coilInstalledDate = Date()
         saveAndSyncNotifications()
-        recordMaintenanceLog(tankId: tank.id, tankName: tank.tankName, actionType: "coil", notes: "Build coil baru (\(tank.wireType))")
+        recordMaintenanceLog(tankId: tank.id, tankName: tank.tankName, actionType: "coil", notes: "Installed new coil (\(tank.wireType))")
         Task {
             await syncService.uploadTank(tank)
         }
@@ -363,7 +363,7 @@ final class VapeDashboardViewModel: ObservableObject {
         }
     }
     
-    // 3. Penghapusan data -> Hapus di DB
+    // Deletion Operations -> Remote & Local
     func deleteTank(_ tank: TankSetup) {
         let id = tank.id
         do {

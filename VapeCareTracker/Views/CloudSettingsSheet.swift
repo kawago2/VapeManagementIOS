@@ -37,11 +37,11 @@ struct CloudSettingsSheet: View {
                     }
                     .padding(.vertical, 4)
                 } header: {
-                    Text("Penyedia Cloud")
+                    Text("Cloud Provider")
                 }
                 
                 Section {
-                    TextField("libsql://... atau https://...", text: $urlInput)
+                    TextField("libsql://... or https://...", text: $urlInput)
                         .autocorrectionDisabled()
                         .textInputAutocapitalization(.never)
                         .keyboardType(.URL)
@@ -50,7 +50,7 @@ struct CloudSettingsSheet: View {
                         Button {
                             urlInput = ""
                         } label: {
-                            Text("Hapus URL")
+                            Text("Clear URL")
                                 .font(.caption)
                                 .foregroundStyle(.red)
                         }
@@ -58,11 +58,11 @@ struct CloudSettingsSheet: View {
                 } header: {
                     Text("Database URL")
                 } footer: {
-                    Text("Mendukung format 'libsql://...' maupun 'https://...'. Bila menggunakan libsql://, otomatis dikonversi ke protokol HTTPS.")
+                    Text("Supports 'libsql://...' or 'https://...'. If using libsql://, it will be automatically converted to HTTPS.")
                 }
                 
                 Section {
-                    SecureField("Paste Auth Token Turso...", text: $tokenInput)
+                    SecureField("Paste Turso Auth Token...", text: $tokenInput)
                         .autocorrectionDisabled()
                         .textInputAutocapitalization(.never)
                     
@@ -70,7 +70,7 @@ struct CloudSettingsSheet: View {
                         Button {
                             tokenInput = ""
                         } label: {
-                            Text("Hapus Token")
+                            Text("Clear Token")
                                 .font(.caption)
                                 .foregroundStyle(.red)
                         }
@@ -78,7 +78,7 @@ struct CloudSettingsSheet: View {
                 } header: {
                     Text("Auth Token")
                 } footer: {
-                    Text("Token didapat dari tombol '+ Create Token' di dashboard Turso Anda.")
+                    Text("Obtain token from '+ Create Token' in your Turso dashboard.")
                 }
                 
                 Section {
@@ -90,7 +90,7 @@ struct CloudSettingsSheet: View {
                                 ProgressView()
                                     .padding(.trailing, 6)
                             }
-                            Text("Simpan & Tes Koneksi")
+                            Text("Save & Test Connection")
                                 .fontWeight(.semibold)
                         }
                     }
@@ -117,11 +117,11 @@ struct CloudSettingsSheet: View {
                             let url = try viewModel.exportJSON()
                             self.exportURL = url
                         } catch {
-                            alertMessage = "Gagal membuat backup JSON: \(error.localizedDescription)"
+                            alertMessage = String(localized: "Failed to create JSON backup: \(error.localizedDescription)")
                             showAlert = true
                         }
                     } label: {
-                        Label("Export Cadangan Lengkap (JSON)", systemImage: "arrow.down.doc.fill")
+                        Label("Export Full Backup (JSON)", systemImage: "arrow.down.doc.fill")
                     }
                     
                     Button {
@@ -129,29 +129,29 @@ struct CloudSettingsSheet: View {
                             let url = try viewModel.exportCSV()
                             self.exportURL = url
                         } catch {
-                            alertMessage = "Gagal membuat laporan CSV: \(error.localizedDescription)"
+                            alertMessage = String(localized: "Failed to create CSV report: \(error.localizedDescription)")
                             showAlert = true
                         }
                     } label: {
-                        Label("Export Laporan Tabel (CSV)", systemImage: "tablecells.badge.ellipsis")
+                        Label("Export Spreadsheet Report (CSV)", systemImage: "tablecells.badge.ellipsis")
                     }
                 } header: {
-                    Text("Cadangan & Ekspor Data")
+                    Text("Backup & Export Data")
                 } footer: {
-                    Text("Ekspor data lokal untuk dicadangkan atau dibuka di aplikasi Spreadsheet seperti Excel / Numbers.")
+                    Text("Export local data for backup or to open in Spreadsheet apps like Excel or Numbers.")
                 }
             }
-            .navigationTitle("Pengaturan Cloud")
+            .navigationTitle("Cloud Settings")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Selesai") {
+                    Button("Done") {
                         dismiss()
                     }
                     .fontWeight(.bold)
                 }
             }
-            .alert("Koneksi Turso", isPresented: $showAlert) {
+            .alert("Turso Connection", isPresented: $showAlert) {
                 Button("OK") {}
             } message: {
                 Text(alertMessage)
@@ -176,14 +176,14 @@ struct CloudSettingsSheet: View {
         Task {
             do {
                 try await syncService.initializeTables()
-                // Otomatis tarik data terbaru dari cloud setelah koneksi berhasil
+                // Automatically pull latest data from cloud after connection succeeds
                 await viewModel.pullFromCloud(showToast: false)
                 isTestingConnection = false
-                alertMessage = "Koneksi Berhasil! Database terhubung dan data cloud berhasil dimuat."
+                alertMessage = String(localized: "Connection successful! Database connected and cloud data loaded.")
                 showAlert = true
             } catch {
                 isTestingConnection = false
-                alertMessage = "Gagal terhubung ke Turso: \(error.localizedDescription)"
+                alertMessage = String(localized: "Failed to connect to Turso: \(error.localizedDescription)")
                 showAlert = true
             }
         }

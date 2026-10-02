@@ -7,12 +7,21 @@ struct VapeManagementDashboardView: View {
     
     // Segmented / Tab view filter for compact modern browsing
     enum DashboardTab: String, CaseIterable, Identifiable {
-        case overview = "Semua"
-        case tanks = "Tank & Coil"
-        case batteries = "Baterai"
-        case liquids = "Liquid"
+        case overview = "All"
+        case tanks = "Tanks & Coils"
+        case batteries = "Batteries"
+        case liquids = "E-Liquids"
         
         var id: String { rawValue }
+        
+        var title: LocalizedStringKey {
+            switch self {
+            case .overview: return "All"
+            case .tanks: return "Tanks & Coils"
+            case .batteries: return "Batteries"
+            case .liquids: return "E-Liquids"
+            }
+        }
         
         var icon: String {
             switch self {
@@ -87,7 +96,7 @@ struct VapeManagementDashboardView: View {
             .refreshable {
                 await viewModel.syncWithCloud()
             }
-            .searchable(text: $viewModel.searchText, prompt: "Cari tank, baterai, atau liquid...")
+            .searchable(text: $viewModel.searchText, prompt: "Search tanks, batteries, or liquids...")
             .background(Color(.systemGroupedBackground).ignoresSafeArea())
             .navigationTitle("Vape Management")
             .navigationBarTitleDisplayMode(.inline)
@@ -223,9 +232,9 @@ struct VapeManagementDashboardView: View {
                     )
                 }
             }
-            .alert("Konfirmasi Reset", isPresented: $showingQuickResetAlert, presenting: quickResetTank) { tank in
-                Button("Batal", role: .cancel) {}
-                Button("Ya, Baru Ganti") {
+            .alert("Confirm Reset", isPresented: $showingQuickResetAlert, presenting: quickResetTank) { tank in
+                Button("Cancel", role: .cancel) {}
+                Button("Yes, Just Replaced") {
                     if quickResetTarget == "cotton" {
                         viewModel.quickResetCotton(for: tank)
                     } else if quickResetTarget == "coil" {
@@ -233,15 +242,15 @@ struct VapeManagementDashboardView: View {
                     }
                 }
             } message: { tank in
-                Text("Perbarui tanggal ganti \(quickResetTarget == "cotton" ? "kapas" : "coil") untuk '\(tank.tankName)' ke hari ini?")
+                Text("Update replacement date of \(quickResetTarget == "cotton" ? "cotton" : "coil") for '\(tank.tankName)' to today?")
             }
-            .alert("Hapus Data", isPresented: $showingDeleteAlert, presenting: itemToDelete) { item in
-                Button("Batal", role: .cancel) {}
-                Button("Hapus", role: .destructive) {
+            .alert("Delete Item", isPresented: $showingDeleteAlert, presenting: itemToDelete) { item in
+                Button("Cancel", role: .cancel) {}
+                Button("Delete", role: .destructive) {
                     performDelete(item)
                 }
             } message: { item in
-                Text("Apakah kamu yakin ingin menghapus '\(item.title)'?")
+                Text("Are you sure you want to delete '\(item.title)'?")
             }
             .task {
                 await viewModel.onAppear()
@@ -277,9 +286,9 @@ struct VapeManagementDashboardView: View {
     // MARK: - Toolbar & Header Views
     private var addMenuButton: some View {
         Menu {
-            Button { isAddingTank = true } label: { Label("Tambah Tank", systemImage: "atom") }
-            Button { isAddingBattery = true } label: { Label("Tambah Baterai", systemImage: "battery.100.bolt") }
-            Button { isAddingLiquid = true } label: { Label("Tambah Liquid", systemImage: "drop.fill") }
+            Button { isAddingTank = true } label: { Label("Add Tank", systemImage: "atom") }
+            Button { isAddingBattery = true } label: { Label("Add Battery", systemImage: "battery.100.bolt") }
+            Button { isAddingLiquid = true } label: { Label("Add E-Liquid", systemImage: "drop.fill") }
         } label: {
             Image(systemName: "plus.circle.fill")
                 .font(.system(size: 20))
@@ -298,7 +307,7 @@ struct VapeManagementDashboardView: View {
                         HStack(spacing: 5) {
                             Image(systemName: tab.icon)
                                 .font(.system(size: 11, weight: .semibold))
-                            Text(tab.rawValue)
+                            Text(tab.title)
                                 .font(.system(size: 12, weight: .medium))
                         }
                         .padding(.horizontal, 12)
@@ -318,10 +327,10 @@ struct VapeManagementDashboardView: View {
     // MARK: - Sections
     private var tankSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            sectionHeader(title: "TANK & SETUP", count: viewModel.filteredTanks.count, onAdd: { isAddingTank = true })
+            sectionHeader(title: "TANKS & SETUPS", count: viewModel.filteredTanks.count, onAdd: { isAddingTank = true })
             
             if viewModel.filteredTanks.isEmpty {
-                emptyPlaceholder(text: viewModel.searchText.isEmpty ? "Belum ada tank terpasang." : "Tidak ada tank yang cocok.")
+                emptyPlaceholder(text: viewModel.searchText.isEmpty ? "No tanks set up yet." : "No matching tanks found.")
             } else {
                 VStack(spacing: 10) {
                     ForEach(viewModel.filteredTanks) { tank in
@@ -353,10 +362,10 @@ struct VapeManagementDashboardView: View {
     
     private var batterySection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            sectionHeader(title: "BATERAI 18650 & CHARGER", count: viewModel.filteredBatteries.count, onAdd: { isAddingBattery = true })
+            sectionHeader(title: "BATTERY INVENTORY", count: viewModel.filteredBatteries.count, onAdd: { isAddingBattery = true })
             
             if viewModel.filteredBatteries.isEmpty {
-                emptyPlaceholder(text: viewModel.searchText.isEmpty ? "Belum ada baterai terdaftar." : "Tidak ada baterai yang cocok.")
+                emptyPlaceholder(text: viewModel.searchText.isEmpty ? "No batteries registered." : "No matching batteries found.")
             } else {
                 VStack(spacing: 6) {
                     ForEach(viewModel.filteredBatteries) { battery in
@@ -376,10 +385,10 @@ struct VapeManagementDashboardView: View {
     
     private var liquidSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            sectionHeader(title: "DAFTAR & USIA LIQUID", count: viewModel.filteredLiquids.count, onAdd: { isAddingLiquid = true })
+            sectionHeader(title: "LIQUID COLLECTION", count: viewModel.filteredLiquids.count, onAdd: { isAddingLiquid = true })
             
             if viewModel.filteredLiquids.isEmpty {
-                emptyPlaceholder(text: viewModel.searchText.isEmpty ? "Belum ada liquid terdaftar." : "Tidak ada liquid yang cocok.")
+                emptyPlaceholder(text: viewModel.searchText.isEmpty ? "No liquids registered." : "No matching liquids found.")
             } else {
                 VStack(spacing: 6) {
                     ForEach(viewModel.filteredLiquids) { liquid in

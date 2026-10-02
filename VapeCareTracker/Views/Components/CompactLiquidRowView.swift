@@ -36,7 +36,7 @@ struct CompactLiquidRowView: View {
                 .font(.system(size: 11))
                 .foregroundStyle(.secondary)
             
-            Text("\(liquid.daysPassed) hr")
+            Text("\(liquid.daysPassed)d")
                 .font(.system(size: 12, weight: .bold))
                 .foregroundStyle(isOverdue ? Color.red : Color.primary)
                 .frame(minWidth: 44, alignment: .trailing)
@@ -48,7 +48,7 @@ struct CompactLiquidRowView: View {
         .shadow(color: Color.black.opacity(0.02), radius: 3, y: 1)
         .contextMenu {
             Button("Edit", action: onEdit)
-            Button("Hapus", role: .destructive, action: onDelete)
+            Button("Delete", role: .destructive, action: onDelete)
         }
     }
 }

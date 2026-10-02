@@ -19,17 +19,17 @@ struct MaintenanceHistorySheet: View {
             Group {
                 if viewModel.maintenanceLogs.isEmpty {
                     ContentUnavailableView(
-                        "Belum Ada Riwayat",
+                        "No Maintenance History",
                         systemImage: "clock.arrow.circlepath",
-                        description: Text("Riwayat pergantian coil dan kapas pada tank kamu akan otomatis tercatat di sini.")
+                        description: Text("Coil and cotton replacements will be automatically recorded here.")
                     )
                 } else {
                     List {
                         Section {
-                            Picker("Filter Tipe", selection: $filterAction) {
-                                Text("Semua").tag("all")
+                            Picker("Filter Type", selection: $filterAction) {
+                                Text("All").tag("all")
                                 Text("Coil").tag("coil")
-                                Text("Kapas").tag("cotton")
+                                Text("Cotton").tag("cotton")
                             }
                             .pickerStyle(.segmented)
                             .listRowBackground(Color.clear)
@@ -42,7 +42,7 @@ struct MaintenanceHistorySheet: View {
                             }
                             .onDelete(perform: deleteLog)
                         } header: {
-                            Text("Daftar Aktivitas (\(filteredLogs.count))")
+                            Text("Activity List (\(filteredLogs.count))")
                                 .font(.caption.bold())
                                 .textCase(.uppercase)
                                 .foregroundStyle(.secondary)
@@ -51,11 +51,11 @@ struct MaintenanceHistorySheet: View {
                     .listStyle(.insetGrouped)
                 }
             }
-            .navigationTitle("Riwayat Maintenance")
+            .navigationTitle("Maintenance History")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Selesai") {
+                    Button("Done") {
                         dismiss()
                     }
                     .font(.body.bold())
@@ -106,7 +106,7 @@ private struct MaintenanceLogRow: View {
                 }
                 
                 HStack(spacing: 6) {
-                    Text(isCoil ? "Ganti Coil" : "Ganti Kapas")
+                    Text(isCoil ? "Coil Changed" : "Cotton Changed")
                         .font(.system(size: 11, weight: .semibold))
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
@@ -128,7 +128,7 @@ private struct MaintenanceLogRow: View {
     
     private func formattedDate(_ date: Date) -> String {
         let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "id_ID")
+        formatter.locale = Locale.current
         formatter.dateStyle = .medium
         formatter.timeStyle = .short
         return formatter.string(from: date)

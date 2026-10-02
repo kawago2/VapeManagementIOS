@@ -37,13 +37,13 @@ struct EditTankSetupSheet: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Identitas Tank & Kawat") {
-                    TextField("Perangkat / Tank (misal: Tank TRML)", text: $tankName)
-                    TextField("Kawat Terpasang (misal: Baby Alien 0.35Ω)", text: $wireType)
+                Section("Tank & Wire Identity") {
+                    TextField("Device / Tank (e.g. TRML Tank)", text: $tankName)
+                    TextField("Installed Wire (e.g. Baby Alien 0.35Ω)", text: $wireType)
                     
-                    Picker("Liquid Aktif", selection: $activeLiquidName) {
+                    Picker("Active E-Liquid", selection: $activeLiquidName) {
                         if existingLiquids.isEmpty {
-                            Text("Belum ada data liquid").tag("")
+                            Text("No liquid data available").tag("")
                         } else {
                             ForEach(existingLiquids) { liquid in
                                 Text(liquid.name).tag(liquid.name)
@@ -54,36 +54,36 @@ struct EditTankSetupSheet: View {
                 
                 Section {
                     DatePicker(
-                        "Tanggal Pasang Coil",
+                        "Coil Installation Date",
                         selection: $coilInstalledDate,
                         in: ...Date(),
                         displayedComponents: [.date]
                     )
-                    Stepper("Batas Usia Coil: \(coilMaxDays) Hari", value: $coilMaxDays, in: 1...60)
+                    Stepper("Coil Lifespan Limit: \(coilMaxDays) Days", value: $coilMaxDays, in: 1...60)
                 } header: {
-                    Text("Pengaturan Coil")
+                    Text("Coil Settings")
                 }
                 
                 Section {
                     DatePicker(
-                        "Tanggal Ganti Kapas",
+                        "Cotton Replacement Date",
                         selection: $cottonReplacedDate,
                         in: ...Date(),
                         displayedComponents: [.date]
                     )
-                    Stepper("Batas Usia Kapas: \(cottonMaxDays) Hari", value: $cottonMaxDays, in: 1...30)
+                    Stepper("Cotton Lifespan Limit: \(cottonMaxDays) Days", value: $cottonMaxDays, in: 1...30)
                 } header: {
-                    Text("Pengaturan Kapas")
+                    Text("Cotton Settings")
                 }
             }
-            .navigationTitle(tank == nil ? "Tambah Tank" : "Ubah Setup Tank")
+            .navigationTitle(tank == nil ? "Add Tank" : "Edit Tank Setup")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Batal") { dismiss() }
+                    Button("Cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Simpan") {
+                    Button("Save") {
                         onSaveTank?(
                             tankName,
                             wireType,

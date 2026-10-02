@@ -27,32 +27,32 @@ struct EditBatterySheet: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Identitas Baterai") {
-                    TextField("ID Baterai (misal: BAT-01)", text: $code)
-                    TextField("Merek / Tipe (misal: PVR Battery 18650)", text: $brandAndType)
-                    TextField("Catatan / Pasangan (opsional)", text: $notes)
+                Section("Battery Identity") {
+                    TextField("Battery ID (e.g. BAT-01)", text: $code)
+                    TextField("Brand / Model (e.g. PVR Battery 18650)", text: $brandAndType)
+                    TextField("Notes / Paired Set (optional)", text: $notes)
                 }
                 
                 Section {
                     DatePicker(
-                        "Tanggal Beli",
+                        "Purchase Date",
                         selection: $purchasedDate,
                         in: ...Date(),
                         displayedComponents: [.date]
                     )
-                    Stepper("Batas Masa Pakai: \(maxDays) Hari", value: $maxDays, in: 30...730, step: 15)
+                    Stepper("Lifespan Limit: \(maxDays) Days", value: $maxDays, in: 30...730, step: 15)
                 } header: {
-                    Text("Riwayat & Batas Pakai")
+                    Text("History & Lifespan Limit")
                 }
             }
-            .navigationTitle(battery == nil ? "Tambah Baterai" : "Ubah Baterai")
+            .navigationTitle(battery == nil ? "Add Battery" : "Edit Battery")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Batal") { dismiss() }
+                    Button("Cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Simpan") {
+                    Button("Save") {
                         onSaveBattery?(code, brandAndType, purchasedDate, maxDays, notes)
                         dismiss()
                     }

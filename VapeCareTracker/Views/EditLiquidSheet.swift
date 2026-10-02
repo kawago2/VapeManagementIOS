@@ -27,38 +27,38 @@ struct EditLiquidSheet: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Identitas Liquid") {
-                    TextField("Nama Liquid (misal: Butterbread Peanut Butter)", text: $name)
+                Section("E-Liquid Identity") {
+                    TextField("E-Liquid Name (e.g. Butterbread Peanut Butter)", text: $name)
                     
                     HStack {
-                        TextField("Nikotin (misal: 3mg)", text: $nicMg)
+                        TextField("Nicotine (e.g. 3mg)", text: $nicMg)
                         Divider()
-                        TextField("Volume (misal: 60ml)", text: $volumeMl)
+                        TextField("Volume (e.g. 60ml)", text: $volumeMl)
                     }
                 }
                 
                 Section {
                     DatePicker(
-                        "Tanggal Buka / Beli",
+                        "Opened / Purchase Date",
                         selection: $openedDate,
                         in: ...Date(),
                         displayedComponents: [.date]
                     )
-                    Stepper("Batas Masa Simpan: \(maxDays) Hari", value: $maxDays, in: 30...365, step: 15)
+                    Stepper("Shelf Life Limit: \(maxDays) Days", value: $maxDays, in: 30...365, step: 15)
                 } header: {
-                    Text("Riwayat & Usia Liquid")
+                    Text("History & Liquid Age")
                 } footer: {
-                    Text("Liquid botol terbuka umumnya disarankan dihabiskan dalam 30 - 90 hari untuk profil rasa dan nikotin optimal.")
+                    Text("Opened bottles are typically recommended to be consumed within 30 - 90 days for optimal flavor and nicotine profile.")
                 }
             }
-            .navigationTitle(liquid == nil ? "Tambah Liquid" : "Ubah Liquid")
+            .navigationTitle(liquid == nil ? "Add E-Liquid" : "Edit E-Liquid")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Batal") { dismiss() }
+                    Button("Cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Simpan") {
+                    Button("Save") {
                         onSaveLiquid?(name.trimmingCharacters(in: .whitespacesAndNewlines), openedDate, maxDays, nicMg, volumeMl)
                         dismiss()
                     }

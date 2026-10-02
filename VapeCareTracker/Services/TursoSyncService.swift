@@ -66,7 +66,7 @@ final class TursoSyncService: TursoSyncServiceProtocol {
     // Execute SQL queries via Turso HTTP API v2 pipeline
     func executeSQL(queries: [String]) async throws -> [[String: Any]] {
         guard !TursoConfig.authToken.isEmpty else {
-            throw NSError(domain: "TursoSyncService", code: 401, userInfo: [NSLocalizedDescriptionKey: "Token Turso belum diisi. Silakan masukkan token di Pengaturan Cloud."])
+            throw NSError(domain: "TursoSyncService", code: 401, userInfo: [NSLocalizedDescriptionKey: String(localized: "Turso token is empty. Please enter your token in Cloud Settings.")])
         }
         
         let endpoint = URL(string: "\(TursoConfig.databaseURL)/v2/pipeline")!
@@ -88,12 +88,12 @@ final class TursoSyncService: TursoSyncServiceProtocol {
         let (data, response) = try await urlSession.data(for: request)
         
         guard let httpResponse = response as? HTTPURLResponse else {
-            throw NSError(domain: "TursoSyncService", code: -1, userInfo: [NSLocalizedDescriptionKey: "Koneksi ke Turso gagal."])
+            throw NSError(domain: "TursoSyncService", code: -1, userInfo: [NSLocalizedDescriptionKey: String(localized: "Failed to connect to Turso.")])
         }
         
         guard httpResponse.statusCode == 200 else {
             let errorMsg = String(data: data, encoding: .utf8) ?? "HTTP \(httpResponse.statusCode)"
-            throw NSError(domain: "TursoSyncService", code: httpResponse.statusCode, userInfo: [NSLocalizedDescriptionKey: "Gagal dari Turso (\(httpResponse.statusCode)): \(errorMsg)"])
+            throw NSError(domain: "TursoSyncService", code: httpResponse.statusCode, userInfo: [NSLocalizedDescriptionKey: "\(String(localized: "Turso error")) (\(httpResponse.statusCode)): \(errorMsg)"])
         }
         
         if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
@@ -104,7 +104,7 @@ final class TursoSyncService: TursoSyncServiceProtocol {
         return []
     }
     
-    // Inisialisasi tabel SQL di Turso Cloud SQLite jika belum ada
+    // Initialize SQL tables in Turso Cloud SQLite if they do not exist
     func initializeTables() async throws {
         let createTanksSQL = """
         CREATE TABLE IF NOT EXISTS tanks (
@@ -171,7 +171,7 @@ final class TursoSyncService: TursoSyncServiceProtocol {
         return rowDicts
     }
 
-    // Pull data dari Turso Cloud SQLite ke SwiftData lokal
+    // Pull data from Turso Cloud SQLite to local SwiftData
     func pullDataFromCloud(repository: VapeDataRepositoryProtocol) async throws {
         try await initializeTables()
         
@@ -414,18 +414,18 @@ final class TursoSyncService: TursoSyncServiceProtocol {
         }
     }
     
-    // Two-Way Sync: Tarik perubahan dari Cloud lalu Push data lokal
+    // Two-Way Sync: Pull changes from Cloud then Push local data
     func syncTwoWay(repository: VapeDataRepositoryProtocol) async throws {
         self.isSyncing = true
         defer { self.isSyncing = false }
         
-        // Step 1: Flus pending offline queue terlebih dahulu jika ada
+        // Step 1: Flush pending offline queue first if any
         await processPendingQueue()
         
-        // Step 2: Pull data terbaru dari Cloud ke lokal
+        // Step 2: Pull latest data from Cloud to local
         try await pullDataFromCloud(repository: repository)
         
-        // Step 3: Push semua data terkini lokal ke Cloud
+        // Step 3: Push current local data to Cloud
         let currentTanks = try repository.fetchTanks()
         let currentBatteries = try repository.fetchBatteries()
         let currentLiquids = try repository.fetchLiquids()
@@ -437,7 +437,7 @@ final class TursoSyncService: TursoSyncServiceProtocol {
         )
         
         self.lastSyncDate = Date()
-        self.lastSyncStatus = "Sinkronisasi 2 arah berhasil!"
+        self.lastSyncStatus = String(localized: "Two-way sync completed successfully!")
     }
     
     // Process and flush offline queue items when reconnected

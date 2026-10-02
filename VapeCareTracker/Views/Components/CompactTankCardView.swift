@@ -75,7 +75,7 @@ struct CompactTankCardView: View {
                             Text("\(tank.coilDaysPassed)")
                                 .font(.system(size: 16, weight: .bold))
                                 .foregroundStyle(isCoilOverdue ? Color.red : (tank.coilDaysPassed >= 10 ? Color.orange : Color.primary))
-                            Text("hari")
+                            Text("days")
                                 .font(.system(size: 11))
                                 .foregroundStyle(.secondary)
                         }
@@ -102,14 +102,14 @@ struct CompactTankCardView: View {
                 // Cotton Metric
                 HStack(spacing: 8) {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("KAPAS")
+                        Text("COTTON")
                             .font(.system(size: 9, weight: .bold))
                             .foregroundStyle(.secondary)
                         HStack(alignment: .firstTextBaseline, spacing: 4) {
                             Text("\(tank.cottonDaysPassed)")
                                 .font(.system(size: 16, weight: .bold))
                                 .foregroundStyle(isCottonOverdue ? Color.red : Color.primary)
-                            Text("hari")
+                            Text("days")
                                 .font(.system(size: 11))
                                 .foregroundStyle(.secondary)
                         }
@@ -136,7 +136,7 @@ struct CompactTankCardView: View {
         .shadow(color: Color.black.opacity(0.02), radius: 5, y: 1)
         .contextMenu {
             Button("Edit Setup", action: onEdit)
-            Button("Hapus Tank", role: .destructive, action: onDelete)
+            Button("Delete Tank", role: .destructive, action: onDelete)
         }
     }
 }
