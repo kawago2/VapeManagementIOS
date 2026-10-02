@@ -11,6 +11,7 @@ final class VapeDashboardViewModel: ObservableObject {
     @Published var tanks: [TankSetup] = []
     @Published var batteries: [BatteryItem] = []
     @Published var liquids: [LiquidItem] = []
+    @Published var maintenanceLogs: [MaintenanceLog] = []
     
     // Refresh & Toast feedback state
     @Published var isRefreshing: Bool = false
@@ -164,8 +165,36 @@ final class VapeDashboardViewModel: ObservableObject {
             self.tanks = try repository.fetchTanks()
             self.batteries = try repository.fetchBatteries()
             self.liquids = try repository.fetchLiquids()
+            self.maintenanceLogs = try repository.fetchMaintenanceLogs()
         } catch {
             print("Error fetching data: \(error.localizedDescription)")
+        }
+    }
+    
+    // MARK: - Maintenance Log Actions
+    func recordMaintenanceLog(tankId: UUID, tankName: String, actionType: String, notes: String = "") {
+        let log = MaintenanceLog(
+            tankId: tankId,
+            tankName: tankName,
+            actionType: actionType,
+            date: Date(),
+            notes: notes
+        )
+        repository.insert(log)
+        do {
+            try repository.save()
+            self.maintenanceLogs = try repository.fetchMaintenanceLogs()
+        } catch {
+            print("Error recording maintenance log: \(error.localizedDescription)")
+        }
+    }
+    
+    func deleteMaintenanceLog(_ log: MaintenanceLog) {
+        do {
+            try repository.delete(log)
+            self.maintenanceLogs = try repository.fetchMaintenanceLogs()
+        } catch {
+            print("Error deleting maintenance log: \(error.localizedDescription)")
         }
     }
     
@@ -279,6 +308,7 @@ final class VapeDashboardViewModel: ObservableObject {
     func quickResetCotton(for tank: TankSetup) {
         tank.cottonReplacedDate = Date()
         saveAndSyncNotifications()
+        recordMaintenanceLog(tankId: tank.id, tankName: tank.tankName, actionType: "cotton", notes: "Ganti kapas baru")
         Task {
             await syncService.uploadTank(tank)
         }
@@ -287,6 +317,7 @@ final class VapeDashboardViewModel: ObservableObject {
     func quickResetCoil(for tank: TankSetup) {
         tank.coilInstalledDate = Date()
         saveAndSyncNotifications()
+        recordMaintenanceLog(tankId: tank.id, tankName: tank.tankName, actionType: "coil", notes: "Build coil baru (\(tank.wireType))")
         Task {
             await syncService.uploadTank(tank)
         }

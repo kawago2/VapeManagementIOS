@@ -120,3 +120,31 @@ final class TankSetup: Identifiable {
         HealthCalculator.shared.calculateHealthStatus(startDate: cottonReplacedDate, maxDays: cottonMaxDays)
     }
 }
+
+// MARK: - 4. Maintenance Log Entity (Audit History)
+@Model
+final class MaintenanceLog: Identifiable {
+    var id: UUID = UUID()
+    var tankId: UUID = UUID()
+    var tankName: String = ""
+    var actionType: String = "" // "coil", "cotton", atau "setup"
+    var date: Date = Date()
+    var notes: String = ""
+    
+    init(
+        id: UUID = UUID(),
+        tankId: UUID,
+        tankName: String,
+        actionType: String,
+        date: Date = Date(),
+        notes: String = ""
+    ) {
+        self.id = id
+        self.tankId = tankId
+        self.tankName = tankName
+        self.actionType = actionType
+        self.date = date
+        self.notes = notes
+    }
+}
+

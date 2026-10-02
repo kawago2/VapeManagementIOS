@@ -6,6 +6,7 @@ protocol VapeDataRepositoryProtocol: AnyObject {
     func fetchTanks() throws -> [TankSetup]
     func fetchBatteries() throws -> [BatteryItem]
     func fetchLiquids() throws -> [LiquidItem]
+    func fetchMaintenanceLogs() throws -> [MaintenanceLog]
     
     func save() throws
     func delete<T: PersistentModel>(_ model: T) throws
@@ -40,6 +41,11 @@ final class VapeDataRepository: VapeDataRepositoryProtocol {
     
     func fetchLiquids() throws -> [LiquidItem] {
         let descriptor = FetchDescriptor<LiquidItem>(sortBy: [SortDescriptor(\.name)])
+        return try context.fetch(descriptor)
+    }
+    
+    func fetchMaintenanceLogs() throws -> [MaintenanceLog] {
+        let descriptor = FetchDescriptor<MaintenanceLog>(sortBy: [SortDescriptor(\.date, order: .reverse)])
         return try context.fetch(descriptor)
     }
     

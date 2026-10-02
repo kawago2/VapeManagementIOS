@@ -11,7 +11,8 @@ struct VapeCareTrackerApp: App {
             let schema = Schema([
                 TankSetup.self,
                 BatteryItem.self,
-                LiquidItem.self
+                LiquidItem.self,
+                MaintenanceLog.self
             ])
             
             let fileManager = FileManager.default

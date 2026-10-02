@@ -37,6 +37,7 @@ struct VapeManagementDashboardView: View {
     @State private var isAddingLiquid: Bool = false
     
     @State private var showingCloudSettings: Bool = false
+    @State private var showingMaintenanceHistory: Bool = false
     @State private var isAnimatingRefresh: Bool = false
     @ObservedObject private var syncService = TursoSyncService.shared
     
@@ -106,6 +107,14 @@ struct VapeManagementDashboardView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     HStack(spacing: 12) {
                         Button {
+                            showingMaintenanceHistory = true
+                        } label: {
+                            Image(systemName: "clock.arrow.circlepath")
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundStyle(Color.primary)
+                        }
+                        
+                        Button {
                             Task {
                                 await viewModel.syncWithCloud()
                             }
@@ -134,6 +143,9 @@ struct VapeManagementDashboardView: View {
             }
             .sheet(isPresented: $showingCloudSettings) {
                 CloudSettingsSheet()
+            }
+            .sheet(isPresented: $showingMaintenanceHistory) {
+                MaintenanceHistorySheet(viewModel: viewModel)
             }
             .sheet(isPresented: $isAddingTank) {
                 EditTankSetupSheet(tank: nil, existingLiquids: viewModel.liquids) { name, wire, coilDate, cottonDate, liquid, coilMax, cottonMax in
