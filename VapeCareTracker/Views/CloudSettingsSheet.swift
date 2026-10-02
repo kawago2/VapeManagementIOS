@@ -176,8 +176,10 @@ struct CloudSettingsSheet: View {
         Task {
             do {
                 try await syncService.initializeTables()
+                // Otomatis tarik data terbaru dari cloud setelah koneksi berhasil
+                await viewModel.pullFromCloud(showToast: false)
                 isTestingConnection = false
-                alertMessage = "Koneksi Berhasil! Database Turso sudah terhubung dan tabel siap digunakan."
+                alertMessage = "Koneksi Berhasil! Database terhubung dan data cloud berhasil dimuat."
                 showAlert = true
             } catch {
                 isTestingConnection = false
